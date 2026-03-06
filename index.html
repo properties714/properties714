@@ -1646,19 +1646,20 @@ SB.auth.onAuthStateChange((_event, session) => {
 // Detect password reset token in URL on page load
 (function checkResetToken() {
   const hash = window.location.hash;
-  if (hash && hash.includes('type=recovery')) {
+  // Only act if there's actual token content
+  if (hash && hash.length > 1 && hash.includes('type=recovery')) {
     window._resetMode = true;
-    // Show blank screen while Supabase processes the token
     document.getElementById('auth-screen').style.display = 'none';
-    // onAuthStateChange will fire PASSWORD_RECOVERY and show the modal
-  } else if (hash && hash.includes('error=access_denied')) {
-    // Token expired — show login with message
+  } else if (hash && hash.length > 1 && hash.includes('error=access_denied')) {
     showScreen('auth');
     const errEl = document.getElementById('login-error');
     errEl.textContent = '⚠️ Reset link expired. Please request a new one.';
     errEl.style.display = 'block';
-    // Clean up URL
     history.replaceState(null, '', window.location.pathname);
+  } else if (hash === '#' || hash === '') {
+    // Empty hash — clean URL and show login normally
+    if (hash === '#') history.replaceState(null, '', window.location.pathname);
+    showScreen('auth');
   }
 })();
 
