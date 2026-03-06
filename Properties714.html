@@ -1,0 +1,1467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P714|AI — Real Estate Investment System</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0a0a0f;
+    --paper: #f5f2ed;
+    --cream: #ede9e2;
+    --gold: #c9a84c;
+    --gold-light: #e8d5a3;
+    --green: #2d6a4f;
+    --green-light: #d8f3dc;
+    --red: #9b2226;
+    --red-light: #ffddd2;
+    --amber: #b5450b;
+    --amber-light: #ffdbb5;
+    --border: rgba(10,10,15,0.12);
+    --shadow: 0 4px 24px rgba(10,10,15,0.08);
+    --shadow-lg: 0 12px 48px rgba(10,10,15,0.14);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 0 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    letter-spacing: -0.5px;
+  }
+  .logo span { color: var(--gold); }
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .status-dot {
+    width: 8px; height: 8px;
+    background: #4ade80;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 6px;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%,100%{opacity:1} 50%{opacity:0.4}
+  }
+
+  /* ── LAYOUT ── */
+  .app {
+    display: flex;
+    min-height: calc(100vh - 64px);
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 220px;
+    background: var(--cream);
+    border-right: 1px solid var(--border);
+    padding: 32px 0;
+    flex-shrink: 0;
+  }
+  .nav-section {
+    padding: 0 20px;
+    margin-bottom: 32px;
+  }
+  .nav-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(10,10,15,0.4);
+    margin-bottom: 10px;
+    padding: 0 4px;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 400;
+    color: rgba(10,10,15,0.65);
+    transition: all 0.15s;
+    margin-bottom: 2px;
+  }
+  .nav-item:hover { background: var(--border); color: var(--ink); }
+  .nav-item.active {
+    background: var(--ink);
+    color: var(--paper);
+    font-weight: 500;
+  }
+  .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+  /* ── MAIN ── */
+  .main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 40px;
+  }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── PAGE HEADER ── */
+  .page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 36px;
+  }
+  .page-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 32px;
+    line-height: 1.1;
+    letter-spacing: -0.5px;
+  }
+  .page-subtitle {
+    font-size: 14px;
+    color: rgba(10,10,15,0.5);
+    margin-top: 4px;
+  }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: 'Outfit', sans-serif;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+  }
+  .btn-primary {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .btn-primary:hover { background: #222; transform: translateY(-1px); }
+  .btn-gold {
+    background: var(--gold);
+    color: var(--ink);
+  }
+  .btn-gold:hover { background: #b8972e; transform: translateY(-1px); }
+  .btn-outline {
+    background: transparent;
+    color: var(--ink);
+    border: 1.5px solid var(--border);
+  }
+  .btn-outline:hover { border-color: var(--ink); }
+  .btn-danger {
+    background: var(--red-light);
+    color: var(--red);
+    border: 1px solid rgba(155,34,38,0.2);
+  }
+
+  /* ── CARDS ── */
+  .card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    box-shadow: var(--shadow);
+  }
+  .card-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    margin-bottom: 20px;
+  }
+
+  /* ── DASHBOARD STATS ── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .stat-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--gold);
+  }
+  .stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: rgba(10,10,15,0.45);
+    margin-bottom: 8px;
+  }
+  .stat-value {
+    font-family: 'DM Serif Display', serif;
+    font-size: 30px;
+    line-height: 1;
+    letter---spacing: -1px;
+  }
+  .stat-delta {
+    font-size: 12px;
+    margin-top: 6px;
+    color: var(--green);
+  }
+
+  /* ── TABLE ── */
+  .table-wrap {
+    overflow-x: auto;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: white;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  thead {
+    background: var(--cream);
+    border-bottom: 1px solid var(--border);
+  }
+  th {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: rgba(10,10,15,0.5);
+    padding: 14px 20px;
+    text-align: left;
+    font-weight: 500;
+  }
+  td {
+    padding: 14px 20px;
+    border-bottom: 1px solid rgba(10,10,15,0.05);
+    vertical-align: middle;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(10,10,15,0.015); }
+  .td-address { font-weight: 500; }
+  .td-mono {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+  }
+
+  /* ── BADGES ── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }
+  .badge-green { background: var(--green-light); color: var(--green); }
+  .badge-red { background: var(--red-light); color: var(--red); }
+  .badge-amber { background: var(--amber-light); color: var(--amber); }
+  .badge-gray { background: var(--cream); color: rgba(10,10,15,0.5); }
+  .badge-ink { background: var(--ink); color: var(--paper); }
+
+  /* ── SCORE BAR ── */
+  .score-bar-wrap { display: flex; align-items: center; gap: 10px; }
+  .score-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--cream);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .score-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.8s ease;
+  }
+  .score-num { font-family: 'DM Mono', monospace; font-size: 12px; width: 28px; }
+
+  /* ── FORMS ── */
+  .form-grid {
+    display: grid;
+    gap: 20px;
+  }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    color: rgba(10,10,15,0.6);
+    text-transform: uppercase;
+    font-family: 'DM Mono', monospace;
+  }
+  .form-control {
+    padding: 11px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: 'Outfit', sans-serif;
+    background: white;
+    color: var(--ink);
+    transition: border-color 0.15s;
+    outline: none;
+  }
+  .form-control:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,168,76,0.1); }
+  .form-control::placeholder { color: rgba(10,10,15,0.3); }
+  select.form-control { cursor: pointer; }
+
+  /* ── ANALYSIS RESULT ── */
+  .analysis-result {
+    background: var(--ink);
+    color: var(--paper);
+    border-radius: 16px;
+    padding: 36px;
+    position: relative;
+    overflow: hidden;
+  }
+  .analysis-result::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(201,168,76,0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .result-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+  }
+  .result-recommendation {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    letter-spacing: -0.5px;
+  }
+  .result-score-big {
+    text-align: right;
+  }
+  .result-score-big .score-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(245,242,237,0.5);
+    margin-bottom: 4px;
+  }
+  .result-score-big .score-num-big {
+    font-family: 'DM Serif Display', serif;
+    font-size: 56px;
+    line-height: 1;
+    color: var(--gold);
+  }
+  .result-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 28px;
+  }
+  .result-metric {}
+  .result-metric .m-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: rgba(245,242,237,0.45);
+    margin-bottom: 6px;
+  }
+  .result-metric .m-val {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+  }
+  .result-ai {
+    background: rgba(245,242,237,0.06);
+    border: 1px solid rgba(245,242,237,0.1);
+    border-radius: 10px;
+    padding: 20px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: rgba(245,242,237,0.8);
+  }
+  .result-ai strong { color: var(--gold); }
+  .strategies-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 24px;
+  }
+  .strategy-card {
+    border: 1.5px solid rgba(245,242,237,0.12);
+    border-radius: 10px;
+    padding: 18px;
+  }
+  .strategy-type {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 12px;
+  }
+  .strategy-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(245,242,237,0.06);
+    color: rgba(245,242,237,0.7);
+  }
+  .strategy-row:last-child { border: none; }
+  .strategy-row strong { color: var(--paper); font-weight: 500; }
+
+  /* ── AI LOADING ── */
+  .ai-loading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 20px;
+    background: var(--cream);
+    border-radius: 10px;
+    font-size: 14px;
+    color: rgba(10,10,15,0.6);
+  }
+  .ai-dots span {
+    display: inline-block;
+    width: 6px; height: 6px;
+    background: var(--gold);
+    border-radius: 50%;
+    margin: 0 2px;
+    animation: bounce 1.2s infinite;
+  }
+  .ai-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .ai-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce {
+    0%,80%,100%{ transform: translateY(0); }
+    40%{ transform: translateY(-6px); }
+  }
+
+  /* ── COMPARABLES ── */
+  .comp-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr auto;
+    gap: 12px;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .comp-row:last-child { border: none; }
+  .comp-header {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: rgba(10,10,15,0.4);
+  }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    text-align: center;
+    padding: 80px 40px;
+    color: rgba(10,10,15,0.4);
+  }
+  .empty-state .empty-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.3;
+  }
+  .empty-state h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    color: rgba(10,10,15,0.6);
+    margin-bottom: 8px;
+  }
+  .empty-state p { font-size: 14px; }
+
+  /* ── PIPELINE ── */
+  .pipeline {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    padding-bottom: 16px;
+  }
+  .pipeline-col {
+    flex-shrink: 0;
+    width: 220px;
+  }
+  .pipeline-header {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(10,10,15,0.4);
+    padding: 0 4px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .pipeline-count {
+    background: var(--cream);
+    border-radius: 20px;
+    padding: 2px 8px;
+    font-size: 11px;
+  }
+  .pipeline-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    box-shadow: 0 2px 8px rgba(10,10,15,0.04);
+  }
+  .pipeline-card:hover {
+    border-color: var(--gold);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(10,10,15,0.1);
+  }
+  .pc-address { font-size: 13px; font-weight: 500; margin-bottom: 8px; }
+  .pc-price {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--gold);
+  }
+  .pc-score {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  /* ── TOOLTIP ── */
+  .section-divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 28px 0;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 1100px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .result-metrics { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">GP<span>|</span>AI <span style="font-family:Outfit;font-size:13px;color:rgba(245,242,237,0.4);font-weight:300;margin-left:8px;">Real Estate Investment System</span></div>
+  <div class="header-right">
+    <span><span class="status-dot"></span>System Online</span>
+    <span style="color:rgba(245,242,237,0.35);">Properties714</span>
+  </div>
+</header>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="nav-section">
+      <div class="nav-label">Overview</div>
+      <div class="nav-item active" onclick="showPage('dashboard', this)">
+        <span class="nav-icon">◼</span> Dashboard
+      </div>
+      <div class="nav-item" onclick="showPage('pipeline', this)">
+        <span class="nav-icon">⬡</span> Pipeline
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Analysis</div>
+      <div class="nav-item" onclick="showPage('analyzer', this)">
+        <span class="nav-icon">⚡</span> Deal Analyzer
+      </div>
+      <div class="nav-item" onclick="showPage('properties', this)">
+        <span class="nav-icon">◻</span> Properties
+      </div>
+      <div class="nav-item" onclick="showPage('comparables', this)">
+        <span class="nav-icon">≈</span> Comparables
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Database</div>
+      <div class="nav-item" onclick="showPage('schema', this)">
+        <span class="nav-icon">⊞</span> DB Schema
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ══════════════ DASHBOARD ══════════════ -->
+    <div id="page-dashboard" class="page active">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Investment Dashboard</div>
+          <div class="page-subtitle">Real-time overview · System initialized empty</div>
+        </div>
+        <button class="btn btn-primary" onclick="showPage('analyzer', document.querySelector('[onclick*=analyzer]'))">
+          ⚡ Analyze New Deal
+        </button>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Total Properties</div>
+          <div class="stat-value" id="stat-properties">0</div>
+          <div class="stat-delta">System starts empty</div>
+        </div>
+        <div class="stat-card" style="--accent: var(--green)">
+          <div class="stat-label">Avg Deal Score</div>
+          <div class="stat-value" id="stat-avg-score">—</div>
+          <div class="stat-delta">No data yet</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Est. Total Profit</div>
+          <div class="stat-value" id="stat-profit">$0</div>
+          <div class="stat-delta">Across all deals</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Good Deals</div>
+          <div class="stat-value" id="stat-good">0</div>
+          <div class="stat-delta">Score ≥ 70</div>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+        <div class="card">
+          <div class="card-title">Recent Deals</div>
+          <div id="dashboard-recent">
+            <div class="empty-state" style="padding:40px 20px">
+              <div class="empty-icon">📋</div>
+              <h3>No deals yet</h3>
+              <p>Analyze your first property to get started</p>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Strategy Distribution</div>
+          <div id="dashboard-strategies">
+            <div class="empty-state" style="padding:40px 20px">
+              <div class="empty-icon">📊</div>
+              <h3>No data</h3>
+              <p>Strategies will appear as you add deals</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ PIPELINE ══════════════ -->
+    <div id="page-pipeline" class="page">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Deal Pipeline</div>
+          <div class="page-subtitle">Track every property through your investment process</div>
+        </div>
+        <button class="btn btn-primary" onclick="showPage('analyzer', document.querySelector('[onclick*=analyzer]'))">
+          + Add Property
+        </button>
+      </div>
+      <div class="pipeline" id="pipeline-board">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+    <!-- ══════════════ ANALYZER ══════════════ -->
+    <div id="page-analyzer" class="page">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Deal Analyzer</div>
+          <div class="page-subtitle">Enter property data · AI calculates all strategies automatically</div>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:24px;">
+        <!-- INPUT FORM -->
+        <div class="card">
+          <div class="card-title">Property Information</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Property Address</label>
+              <input type="text" class="form-control" id="f-address" placeholder="123 Main St, Atlanta, GA 30301">
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>City</label>
+                <input type="text" class="form-control" id="f-city" placeholder="Atlanta">
+              </div>
+              <div class="form-group">
+                <label>ZIP</label>
+                <input type="text" class="form-control" id="f-zip" placeholder="30301">
+              </div>
+            </div>
+            <hr class="section-divider">
+            <div class="card-title" style="font-size:16px; margin-bottom:4px;">Financial Inputs</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Asking Price ($)</label>
+                <input type="number" class="form-control" id="f-asking" placeholder="210000">
+              </div>
+              <div class="form-group">
+                <label>Rehab Estimate ($)</label>
+                <input type="number" class="form-control" id="f-rehab" placeholder="60000">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Closing Costs ($)</label>
+                <input type="number" class="form-control" id="f-closing" placeholder="8000">
+              </div>
+              <div class="form-group">
+                <label>Holding Costs ($)</label>
+                <input type="number" class="form-control" id="f-holding" placeholder="6000">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Agent Fees ($)</label>
+                <input type="number" class="form-control" id="f-agent" placeholder="10000">
+              </div>
+              <div class="form-group">
+                <label>Est. Monthly Rent ($)</label>
+                <input type="number" class="form-control" id="f-rent" placeholder="2200">
+              </div>
+            </div>
+            <hr class="section-divider">
+            <div class="card-title" style="font-size:16px; margin-bottom:4px;">Comparables (for ARV)</div>
+            <div id="comps-input">
+              <div class="comp-row">
+                <div class="comp-header">Address</div>
+                <div class="comp-header">Sold $</div>
+                <div class="comp-header">SqFt</div>
+                <div class="comp-header">Beds</div>
+                <div class="comp-header">Baths</div>
+                <div class="comp-header">Miles</div>
+                <div></div>
+              </div>
+              <div id="comp-rows"></div>
+            </div>
+            <button class="btn btn-outline" onclick="addCompRow()" style="width:100%; justify-content:center;">
+              + Add Comparable
+            </button>
+            <button class="btn btn-gold" onclick="analyzeDeal()" style="width:100%; justify-content:center; padding:14px;">
+              ⚡ Analyze Deal
+            </button>
+          </div>
+        </div>
+
+        <!-- RESULT -->
+        <div>
+          <div id="analyzer-placeholder" class="card" style="height:100%; display:flex; align-items:center; justify-content:center;">
+            <div class="empty-state">
+              <div class="empty-icon">🎯</div>
+              <h3>Ready to analyze</h3>
+              <p>Fill in the property details and<br>click Analyze Deal</p>
+            </div>
+          </div>
+          <div id="analyzer-loading" style="display:none;">
+            <div class="ai-loading">
+              <div class="ai-dots"><span></span><span></span><span></span></div>
+              AI is analyzing this deal...
+            </div>
+          </div>
+          <div id="analyzer-result" style="display:none;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ PROPERTIES ══════════════ -->
+    <div id="page-properties" class="page">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Properties</div>
+          <div class="page-subtitle" id="props-count">0 properties in database</div>
+        </div>
+        <button class="btn btn-primary" onclick="showPage('analyzer', document.querySelector('[onclick*=analyzer]'))">
+          + Add Property
+        </button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Address</th>
+              <th>Asking</th>
+              <th>ARV</th>
+              <th>Strategy</th>
+              <th>Score</th>
+              <th>Recommendation</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="properties-tbody">
+            <tr><td colspan="8">
+              <div class="empty-state">
+                <div class="empty-icon">🏠</div>
+                <h3>No properties yet</h3>
+                <p>Analyze your first deal to populate this table</p>
+              </div>
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══════════════ COMPARABLES ══════════════ -->
+    <div id="page-comparables" class="page">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Comparables Database</div>
+          <div class="page-subtitle" id="comps-count">0 comparables saved</div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Property</th>
+              <th>Comp Address</th>
+              <th>Sold Price</th>
+              <th>SqFt</th>
+              <th>Beds</th>
+              <th>Baths</th>
+              <th>Distance</th>
+              <th>$/SqFt</th>
+            </tr>
+          </thead>
+          <tbody id="comps-tbody">
+            <tr><td colspan="8">
+              <div class="empty-state">
+                <div class="empty-icon">📍</div>
+                <h3>No comparables yet</h3>
+                <p>Add comps when analyzing a deal</p>
+              </div>
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══════════════ DB SCHEMA ══════════════ -->
+    <div id="page-schema" class="page">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Database Schema</div>
+          <div class="page-subtitle">PostgreSQL — 5 tables · Ready for n8n integration</div>
+        </div>
+      </div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+        <div class="card">
+          <div class="card-title">users</div>
+          <pre style="font-family:'DM Mono',monospace; font-size:12px; line-height:1.7; color:rgba(10,10,15,0.7); background:var(--cream); padding:16px; border-radius:8px; overflow-x:auto;">CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  name TEXT,
+  email TEXT,
+  investment_focus TEXT,
+  risk_tolerance TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);</pre>
+        </div>
+        <div class="card">
+          <div class="card-title">properties</div>
+          <pre style="font-family:'DM Mono',monospace; font-size:12px; line-height:1.7; color:rgba(10,10,15,0.7); background:var(--cream); padding:16px; border-radius:8px; overflow-x:auto;">CREATE TABLE properties (
+  id SERIAL PRIMARY KEY,
+  address TEXT NOT NULL,
+  city TEXT,
+  state TEXT,
+  zip TEXT,
+  asking_price NUMERIC,
+  estimated_arv NUMERIC,
+  estimated_rehab NUMERIC,
+  strategy_candidate TEXT,
+  status TEXT DEFAULT 'new',
+  created_at TIMESTAMP DEFAULT NOW()
+);</pre>
+        </div>
+        <div class="card">
+          <div class="card-title">comparables</div>
+          <pre style="font-family:'DM Mono',monospace; font-size:12px; line-height:1.7; color:rgba(10,10,15,0.7); background:var(--cream); padding:16px; border-radius:8px; overflow-x:auto;">CREATE TABLE comparables (
+  id SERIAL PRIMARY KEY,
+  property_id INTEGER REFERENCES properties(id),
+  address TEXT,
+  sold_price NUMERIC,
+  sqft INTEGER,
+  beds INTEGER,
+  baths NUMERIC,
+  distance NUMERIC,
+  sold_date DATE,
+  source TEXT
+);</pre>
+        </div>
+        <div class="card">
+          <div class="card-title">deal_analysis</div>
+          <pre style="font-family:'DM Mono',monospace; font-size:12px; line-height:1.7; color:rgba(10,10,15,0.7); background:var(--cream); padding:16px; border-radius:8px; overflow-x:auto;">CREATE TABLE deal_analysis (
+  id SERIAL PRIMARY KEY,
+  property_id INTEGER REFERENCES properties(id),
+  arv NUMERIC,
+  purchase_price NUMERIC,
+  rehab_cost NUMERIC,
+  closing_costs NUMERIC,
+  holding_cost NUMERIC,
+  agent_fees NUMERIC,
+  total_investment NUMERIC,
+  estimated_profit NUMERIC,
+  roi NUMERIC,
+  deal_score INTEGER,
+  recommendation TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);</pre>
+        </div>
+        <div class="card" style="grid-column: 1/-1">
+          <div class="card-title">strategies</div>
+          <pre style="font-family:'DM Mono',monospace; font-size:12px; line-height:1.7; color:rgba(10,10,15,0.7); background:var(--cream); padding:16px; border-radius:8px; overflow-x:auto;">CREATE TABLE strategies (
+  id SERIAL PRIMARY KEY,
+  property_id INTEGER REFERENCES properties(id),
+  strategy_type TEXT,        -- fix_flip | rental | wholesale
+  estimated_rent NUMERIC,
+  monthly_cashflow NUMERIC,
+  cap_rate NUMERIC,
+  cash_on_cash NUMERIC,
+  assignment_fee NUMERIC,
+  created_at TIMESTAMP DEFAULT NOW()
+);</pre>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:20px;">
+        <div class="card-title">n8n Workflow — Main Flow</div>
+        <div style="display:flex; gap:0; align-items:center; flex-wrap:wrap; gap:8px; padding:12px 0;">
+          <div style="background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:8px;font-size:12px;font-family:'DM Mono',monospace;">Property Input</div>
+          <span style="color:var(--gold); font-size:18px;">→</span>
+          <div style="background:var(--cream);padding:10px 16px;border-radius:8px;font-size:12px;font-family:'DM Mono',monospace;">Save to DB</div>
+          <span style="color:var(--gold); font-size:18px;">→</span>
+          <div style="background:var(--cream);padding:10px 16px;border-radius:8px;font-size:12px;font-family:'DM Mono',monospace;">Get Comparables</div>
+          <span style="color:var(--gold); font-size:18px;">→</span>
+          <div style="background:var(--cream);padding:10px 16px;border-radius:8px;font-size:12px;font-family:'DM Mono',monospace;">Calculate ARV</div>
+          <span style="color:var(--gold); font-size:18px;">→</span>
+          <div style="background:var(--cream);padding:10px 16px;border-radius:8px;font-size:12px;font-family:'DM Mono',monospace;">Calc Strategies</div>
+          <span style="color:var(--gold); font-size:18px;">→</span>
+          <div style="background:var(--cream);padding:10px 16px;border-radius:8px;font-size:12px;font-family:'DM Mono',monospace;">Calc ROI</div>
+          <span style="color:var(--gold); font-size:18px;">→</span>
+          <div style="background:var(--cream);padding:10px 16px;border-radius:8px;font-size:12px;font-family:'DM Mono',monospace;">Deal Score</div>
+          <span style="color:var(--gold); font-size:18px;">→</span>
+          <div style="background:var(--gold);color:var(--ink);padding:10px 16px;border-radius:8px;font-size:12px;font-family:'DM Mono',monospace;font-weight:600;">AI Recommendation</div>
+          <span style="color:var(--gold); font-size:18px;">→</span>
+          <div style="background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:8px;font-size:12px;font-family:'DM Mono',monospace;">Save Analysis</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ══════════════════════════════════════
+//  STATE — starts completely empty
+// ══════════════════════════════════════
+const DB = {
+  properties: [],   // { id, address, city, zip, asking_price, estimated_arv, estimated_rehab, strategy_candidate, status, created_at }
+  comparables: [],  // { id, property_id, address, sold_price, sqft, beds, baths, distance }
+  deal_analysis: [], // { id, property_id, arv, purchase_price, rehab_cost, closing_costs, holding_cost, agent_fees, total_investment, estimated_profit, roi, deal_score, recommendation }
+  strategies: [],   // { id, property_id, strategy_type, ... }
+  nextId: { prop: 1, comp: 1, analysis: 1, strategy: 1 }
+};
+
+// ══════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════
+function showPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  if (el) el.classList.add('active');
+  if (id === 'properties') renderProperties();
+  if (id === 'comparables') renderComparables();
+  if (id === 'pipeline') renderPipeline();
+  if (id === 'dashboard') renderDashboard();
+}
+
+// ══════════════════════════════════════
+//  COMPARABLE ROWS
+// ══════════════════════════════════════
+let compCount = 0;
+function addCompRow() {
+  compCount++;
+  const div = document.createElement('div');
+  div.className = 'comp-row';
+  div.id = 'cr-' + compCount;
+  div.innerHTML = `
+    <input type="text" class="form-control" placeholder="456 Elm St" style="font-size:13px;padding:8px 10px;">
+    <input type="number" class="form-control" placeholder="290000" style="font-size:13px;padding:8px 10px;">
+    <input type="number" class="form-control" placeholder="1800" style="font-size:13px;padding:8px 10px;">
+    <input type="number" class="form-control" placeholder="3" style="font-size:13px;padding:8px 10px;">
+    <input type="number" class="form-control" placeholder="2" step="0.5" style="font-size:13px;padding:8px 10px;">
+    <input type="number" class="form-control" placeholder="0.3" step="0.1" style="font-size:13px;padding:8px 10px;">
+    <button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;font-size:16px;color:rgba(10,10,15,0.4);">✕</button>
+  `;
+  document.getElementById('comp-rows').appendChild(div);
+}
+
+function getComps() {
+  const rows = document.querySelectorAll('#comp-rows .comp-row');
+  const comps = [];
+  rows.forEach(r => {
+    const inputs = r.querySelectorAll('input');
+    const sold = parseFloat(inputs[1].value);
+    if (sold > 0) {
+      comps.push({
+        address: inputs[0].value || 'Unknown',
+        sold_price: sold,
+        sqft: parseInt(inputs[2].value) || 0,
+        beds: parseInt(inputs[3].value) || 0,
+        baths: parseFloat(inputs[4].value) || 0,
+        distance: parseFloat(inputs[5].value) || 0
+      });
+    }
+  });
+  return comps;
+}
+
+// ══════════════════════════════════════
+//  CALCULATION ENGINE
+// ══════════════════════════════════════
+function calcARV(comps) {
+  if (!comps.length) return 0;
+  const total = comps.reduce((s, c) => s + c.sold_price, 0);
+  return Math.round(total / comps.length);
+}
+
+function calcFixFlip(purchase, rehab, closing, holding, agent, arv) {
+  const total = purchase + rehab + closing + holding + agent;
+  const profit = arv - total;
+  const roi = total > 0 ? (profit / total) * 100 : 0;
+  return { total, profit, roi };
+}
+
+function calcWholesale(arv, rehab) {
+  const mao = (arv * 0.70) - rehab;
+  const fee = mao * 0.05; // typical assignment ~5% of MAO
+  return { mao, fee };
+}
+
+function calcRental(purchase, rent) {
+  const taxes = purchase * 0.012 / 12;
+  const insurance = 120;
+  const maintenance = rent * 0.05;
+  const vacancy = rent * 0.08;
+  const management = rent * 0.10;
+  const expenses = taxes + insurance + maintenance + vacancy + management;
+  const cashflow = rent - expenses;
+  const noi = (rent - expenses) * 12;
+  const cap_rate = purchase > 0 ? (noi / purchase) * 100 : 0;
+  const downpayment = purchase * 0.25;
+  const coc = downpayment > 0 ? ((cashflow * 12) / downpayment) * 100 : 0;
+  return { cashflow, cap_rate, coc, expenses };
+}
+
+function calcDealScore(profit, roi, rehab, arv) {
+  let score = 100;
+  if (profit < 25000) score -= 30;
+  if (roi < 15) score -= 25;
+  if (arv > 0 && (rehab / arv) > 0.40) score -= 20;
+  if (profit > 50000) score += 15;
+  if (roi > 25) score += 20;
+  return Math.max(0, Math.min(100, Math.round(score)));
+}
+
+function getRecommendation(score, profit, roi) {
+  if (score >= 70 && profit > 25000) return 'GOOD DEAL';
+  if (score >= 45) return 'MARGINAL DEAL';
+  return 'REJECT';
+}
+
+function getScoreColor(score) {
+  if (score >= 70) return '#2d6a4f';
+  if (score >= 45) return '#b5450b';
+  return '#9b2226';
+}
+
+function getRecBadge(rec) {
+  if (rec === 'GOOD DEAL') return 'badge-green';
+  if (rec === 'MARGINAL DEAL') return 'badge-amber';
+  return 'badge-red';
+}
+
+// ══════════════════════════════════════
+//  AI RECOMMENDATION via Anthropic API
+// ══════════════════════════════════════
+async function getAIRecommendation(data) {
+  const prompt = `You are an expert real estate investment advisor. Analyze this deal and provide a concise recommendation (3-4 sentences max). Be direct and actionable.
+
+Property: ${data.address}
+ARV: $${data.arv.toLocaleString()}
+Purchase Price: $${data.purchase.toLocaleString()}
+Rehab Cost: $${data.rehab.toLocaleString()}
+Total Investment: $${data.total.toLocaleString()}
+Estimated Profit (Fix & Flip): $${data.profit.toLocaleString()}
+ROI: ${data.roi.toFixed(1)}%
+Deal Score: ${data.score}/100
+Wholesale MAO: $${data.mao.toLocaleString()}
+Est. Monthly Rent: $${data.rent.toLocaleString()}
+Monthly Cashflow (Rental): $${data.cashflow.toFixed(0)}
+Cap Rate: ${data.cap_rate.toFixed(1)}%
+
+Recommendation category: ${data.recommendation}
+
+Provide a brief analysis highlighting the strongest strategy, key risks, and one specific action to take.`;
+
+  try {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+    const d = await response.json();
+    return d.content?.[0]?.text || "Analysis complete. Review the metrics above.";
+  } catch (e) {
+    return "AI analysis unavailable. Review the calculated metrics above to make your investment decision.";
+  }
+}
+
+// ══════════════════════════════════════
+//  MAIN ANALYZER
+// ══════════════════════════════════════
+async function analyzeDeal() {
+  const address = document.getElementById('f-address').value.trim();
+  if (!address) { alert('Please enter a property address'); return; }
+
+  const purchase = parseFloat(document.getElementById('f-asking').value) || 0;
+  const rehab = parseFloat(document.getElementById('f-rehab').value) || 0;
+  const closing = parseFloat(document.getElementById('f-closing').value) || 8000;
+  const holding = parseFloat(document.getElementById('f-holding').value) || 6000;
+  const agent = parseFloat(document.getElementById('f-agent').value) || 10000;
+  const rent = parseFloat(document.getElementById('f-rent').value) || 0;
+  const city = document.getElementById('f-city').value.trim();
+  const zip = document.getElementById('f-zip').value.trim();
+  const comps = getComps();
+
+  // Show loading
+  document.getElementById('analyzer-placeholder').style.display = 'none';
+  document.getElementById('analyzer-loading').style.display = 'flex';
+  document.getElementById('analyzer-result').style.display = 'none';
+
+  // Calculations
+  const arv = comps.length > 0 ? calcARV(comps) : (purchase * 1.45);
+  const ff = calcFixFlip(purchase, rehab, closing, holding, agent, arv);
+  const ws = calcWholesale(arv, rehab);
+  const rl = calcRental(purchase, rent || arv * 0.008);
+  const score = calcDealScore(ff.profit, ff.roi, rehab, arv);
+  const rec = getRecommendation(score, ff.profit, ff.roi);
+
+  // Determine best strategy
+  let bestStrategy = 'fix_flip';
+  if (ff.profit < 20000 && rl.cap_rate > 6) bestStrategy = 'rental';
+  if (ff.profit < 15000) bestStrategy = 'wholesale';
+
+  // Get AI recommendation
+  const aiData = {
+    address, arv, purchase, rehab, total: ff.total,
+    profit: ff.profit, roi: ff.roi, score, recommendation: rec,
+    mao: ws.mao, rent: rent || arv * 0.008,
+    cashflow: rl.cashflow, cap_rate: rl.cap_rate
+  };
+  const aiText = await getAIRecommendation(aiData);
+
+  // Save to DB
+  const propId = DB.nextId.prop++;
+  DB.properties.push({
+    id: propId, address, city, state: 'GA', zip,
+    asking_price: purchase, estimated_arv: arv,
+    estimated_rehab: rehab, strategy_candidate: bestStrategy,
+    status: 'new', created_at: new Date()
+  });
+
+  comps.forEach(c => {
+    DB.comparables.push({ id: DB.nextId.comp++, property_id: propId, ...c });
+  });
+
+  DB.deal_analysis.push({
+    id: DB.nextId.analysis++, property_id: propId,
+    arv, purchase_price: purchase, rehab_cost: rehab,
+    closing_costs: closing, holding_cost: holding, agent_fees: agent,
+    total_investment: ff.total, estimated_profit: ff.profit,
+    roi: ff.roi, deal_score: score, recommendation: rec,
+    created_at: new Date()
+  });
+
+  DB.strategies.push(
+    { id: DB.nextId.strategy++, property_id: propId, strategy_type: 'fix_flip', estimated_profit: ff.profit, roi: ff.roi },
+    { id: DB.nextId.strategy++, property_id: propId, strategy_type: 'wholesale', assignment_fee: ws.fee, mao: ws.mao },
+    { id: DB.nextId.strategy++, property_id: propId, strategy_type: 'rental', estimated_rent: rent || arv*0.008, monthly_cashflow: rl.cashflow, cap_rate: rl.cap_rate, cash_on_cash: rl.coc }
+  );
+
+  // Render result
+  const scoreColor = getScoreColor(score);
+  const recIcon = rec === 'GOOD DEAL' ? '✅' : rec === 'MARGINAL DEAL' ? '⚠️' : '❌';
+  const compsNote = comps.length > 0 ? `ARV calculated from ${comps.length} comparable(s)` : 'ARV estimated (no comps entered)';
+
+  document.getElementById('analyzer-loading').style.display = 'none';
+  document.getElementById('analyzer-result').style.display = 'block';
+  document.getElementById('analyzer-result').innerHTML = `
+    <div class="analysis-result">
+      <div class="result-header">
+        <div>
+          <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(245,242,237,0.4);margin-bottom:6px;">${address}</div>
+          <div class="result-recommendation">${recIcon} ${rec}</div>
+          <div style="font-size:12px;color:rgba(245,242,237,0.4);margin-top:6px;">${compsNote}</div>
+        </div>
+        <div class="result-score-big">
+          <div class="score-label">Deal Score</div>
+          <div class="score-num-big">${score}</div>
+        </div>
+      </div>
+
+      <div class="result-metrics">
+        <div class="result-metric">
+          <div class="m-label">ARV</div>
+          <div class="m-val">$${arv.toLocaleString()}</div>
+        </div>
+        <div class="result-metric">
+          <div class="m-label">Total Investment</div>
+          <div class="m-val">$${ff.total.toLocaleString()}</div>
+        </div>
+        <div class="result-metric">
+          <div class="m-label">Est. Profit</div>
+          <div class="m-val" style="color:${ff.profit > 0 ? '#4ade80' : '#f87171'}">$${ff.profit.toLocaleString()}</div>
+        </div>
+        <div class="result-metric">
+          <div class="m-label">ROI</div>
+          <div class="m-val" style="color:${ff.roi > 15 ? '#4ade80' : '#f87171'}">${ff.roi.toFixed(1)}%</div>
+        </div>
+      </div>
+
+      <div class="result-ai">
+        <strong>AI Advisor:</strong> ${aiText}
+      </div>
+
+      <div class="strategies-grid">
+        <div class="strategy-card">
+          <div class="strategy-type">Fix &amp; Flip</div>
+          <div class="strategy-row"><span>Purchase</span><strong>$${purchase.toLocaleString()}</strong></div>
+          <div class="strategy-row"><span>Rehab</span><strong>$${rehab.toLocaleString()}</strong></div>
+          <div class="strategy-row"><span>Costs</span><strong>$${(closing+holding+agent).toLocaleString()}</strong></div>
+          <div class="strategy-row"><span>Total In</span><strong>$${ff.total.toLocaleString()}</strong></div>
+          <div class="strategy-row"><span>Profit</span><strong style="color:#4ade80">$${ff.profit.toLocaleString()}</strong></div>
+          <div class="strategy-row"><span>ROI</span><strong style="color:#4ade80">${ff.roi.toFixed(1)}%</strong></div>
+        </div>
+        <div class="strategy-card">
+          <div class="strategy-type">Wholesale</div>
+          <div class="strategy-row"><span>ARV × 70%</span><strong>$${Math.round(arv*0.70).toLocaleString()}</strong></div>
+          <div class="strategy-row"><span>− Rehab</span><strong>$${rehab.toLocaleString()}</strong></div>
+          <div class="strategy-row"><span>= MAO</span><strong>$${Math.round(ws.mao).toLocaleString()}</strong></div>
+          <div class="strategy-row"><span>Assignment Fee</span><strong style="color:#4ade80">$${Math.round(ws.fee).toLocaleString()}</strong></div>
+          <div class="strategy-row"><span>Est. Buyer Profit</span><strong>$${Math.round(arv - ws.mao - rehab).toLocaleString()}</strong></div>
+        </div>
+        <div class="strategy-card">
+          <div class="strategy-type">Rental</div>
+          <div class="strategy-row"><span>Monthly Rent</span><strong>$${Math.round(rent || arv*0.008).toLocaleString()}</strong></div>
+          <div class="strategy-row"><span>Monthly Expenses</span><strong>$${Math.round(rl.expenses).toLocaleString()}</strong></div>
+          <div class="strategy-row"><span>Cashflow/mo</span><strong style="color:${rl.cashflow>0?'#4ade80':'#f87171'}">$${Math.round(rl.cashflow).toLocaleString()}</strong></div>
+          <div class="strategy-row"><span>Cap Rate</span><strong>${rl.cap_rate.toFixed(1)}%</strong></div>
+          <div class="strategy-row"><span>Cash-on-Cash</span><strong>${rl.coc.toFixed(1)}%</strong></div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  updateDashboardStats();
+}
+
+// ══════════════════════════════════════
+//  RENDER FUNCTIONS
+// ══════════════════════════════════════
+function renderProperties() {
+  const tbody = document.getElementById('properties-tbody');
+  document.getElementById('props-count').textContent = `${DB.properties.length} properties in database`;
+  if (!DB.properties.length) {
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">🏠</div><h3>No properties yet</h3><p>Analyze your first deal to populate this table</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = DB.properties.map(p => {
+    const analysis = DB.deal_analysis.find(a => a.property_id === p.id);
+    const score = analysis ? analysis.deal_score : '—';
+    const rec = analysis ? analysis.recommendation : '—';
+    const arv = analysis ? '$' + analysis.arv.toLocaleString() : '—';
+    const scoreColor = analysis ? getScoreColor(analysis.deal_score) : '#aaa';
+    return `<tr>
+      <td class="td-address">${p.address}<br><span style="font-size:11px;color:rgba(10,10,15,0.4)">${p.city || ''} ${p.zip || ''}</span></td>
+      <td class="td-mono">$${(p.asking_price||0).toLocaleString()}</td>
+      <td class="td-mono">${arv}</td>
+      <td><span class="badge badge-gray">${p.strategy_candidate || '—'}</span></td>
+      <td>
+        ${analysis ? `<div class="score-bar-wrap">
+          <div class="score-bar"><div class="score-fill" style="width:${score}%;background:${scoreColor}"></div></div>
+          <span class="score-num">${score}</span>
+        </div>` : '—'}
+      </td>
+      <td>${rec !== '—' ? `<span class="badge ${getRecBadge(rec)}">${rec}</span>` : '—'}</td>
+      <td><span class="badge badge-ink">${p.status}</span></td>
+      <td><button class="btn btn-outline" style="padding:6px 12px;font-size:12px;" onclick="deleteProperty(${p.id})">Remove</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderComparables() {
+  const tbody = document.getElementById('comps-tbody');
+  document.getElementById('comps-count').textContent = `${DB.comparables.length} comparables saved`;
+  if (!DB.comparables.length) {
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">📍</div><h3>No comparables yet</h3><p>Add comps when analyzing a deal</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = DB.comparables.map(c => {
+    const prop = DB.properties.find(p => p.id === c.property_id);
+    const ppa = c.sqft > 0 ? '$' + Math.round(c.sold_price / c.sqft).toLocaleString() : '—';
+    return `<tr>
+      <td style="font-size:12px;color:rgba(10,10,15,0.5)">${prop ? prop.address : `#${c.property_id}`}</td>
+      <td class="td-address">${c.address}</td>
+      <td class="td-mono">$${c.sold_price.toLocaleString()}</td>
+      <td class="td-mono">${c.sqft || '—'}</td>
+      <td>${c.beds || '—'}</td>
+      <td>${c.baths || '—'}</td>
+      <td class="td-mono">${c.distance ? c.distance + ' mi' : '—'}</td>
+      <td class="td-mono">${ppa}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderPipeline() {
+  const stages = ['new', 'analyzing', 'offer_sent', 'under_contract', 'closed', 'dead'];
+  const labels = { new: 'New', analyzing: 'Analyzing', offer_sent: 'Offer Sent', under_contract: 'Under Contract', closed: 'Closed', dead: 'Dead' };
+  const board = document.getElementById('pipeline-board');
+  board.innerHTML = stages.map(s => {
+    const props = DB.properties.filter(p => p.status === s);
+    return `
+      <div class="pipeline-col">
+        <div class="pipeline-header">
+          ${labels[s]}
+          <span class="pipeline-count">${props.length}</span>
+        </div>
+        ${props.length ? props.map(p => {
+          const analysis = DB.deal_analysis.find(a => a.property_id === p.id);
+          const score = analysis ? analysis.deal_score : null;
+          const scoreColor = score !== null ? getScoreColor(score) : '#aaa';
+          return `<div class="pipeline-card">
+            <div class="pc-address">${p.address}</div>
+            <div class="pc-price">$${(p.asking_price||0).toLocaleString()}</div>
+            ${score !== null ? `<div class="pc-score">
+              <div class="score-bar" style="flex:1"><div class="score-fill" style="width:${score}%;background:${scoreColor}"></div></div>
+              <span style="font-family:'DM Mono',monospace;font-size:11px">${score}</span>
+            </div>` : ''}
+          </div>`;
+        }).join('') : `<div style="text-align:center;padding:20px;color:rgba(10,10,15,0.3);font-size:12px;">Empty</div>`}
+      </div>
+    `;
+  }).join('');
+}
+
+function renderDashboard() {
+  updateDashboardStats();
+  const recent = document.getElementById('dashboard-recent');
+  const strats = document.getElementById('dashboard-strategies');
+
+  if (!DB.properties.length) {
+    recent.innerHTML = `<div class="empty-state" style="padding:40px 20px"><div class="empty-icon">📋</div><h3>No deals yet</h3><p>Analyze your first property to get started</p></div>`;
+    strats.innerHTML = `<div class="empty-state" style="padding:40px 20px"><div class="empty-icon">📊</div><h3>No data</h3><p>Strategies will appear as you add deals</p></div>`;
+    return;
+  }
+
+  const sorted = [...DB.properties].sort((a,b) => new Date(b.created_at) - new Date(a.created_at)).slice(0,4);
+  recent.innerHTML = sorted.map(p => {
+    const a = DB.deal_analysis.find(d => d.property_id === p.id);
+    const rec = a ? a.recommendation : 'Pending';
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div>
+        <div style="font-size:13px;font-weight:500">${p.address}</div>
+        <div style="font-size:11px;color:rgba(10,10,15,0.4)">$${(p.asking_price||0).toLocaleString()} · ${p.strategy_candidate || '—'}</div>
+      </div>
+      <span class="badge ${getRecBadge(rec)}" style="font-size:10px">${rec}</span>
+    </div>`;
+  }).join('');
+
+  const stratCounts = { fix_flip: 0, rental: 0, wholesale: 0 };
+  DB.properties.forEach(p => { if (p.strategy_candidate) stratCounts[p.strategy_candidate] = (stratCounts[p.strategy_candidate]||0) + 1; });
+  const total = DB.properties.length || 1;
+  strats.innerHTML = Object.entries(stratCounts).map(([k,v]) => `
+    <div style="margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px">
+        <span>${k.replace('_',' ').replace(/\b\w/g,c=>c.toUpperCase())}</span>
+        <span style="font-family:'DM Mono',monospace">${v}</span>
+      </div>
+      <div class="score-bar"><div class="score-fill" style="width:${Math.round(v/total*100)}%;background:var(--gold)"></div></div>
+    </div>
+  `).join('');
+}
+
+function updateDashboardStats() {
+  document.getElementById('stat-properties').textContent = DB.properties.length;
+  if (DB.deal_analysis.length) {
+    const avgScore = Math.round(DB.deal_analysis.reduce((s,a) => s + a.deal_score, 0) / DB.deal_analysis.length);
+    document.getElementById('stat-avg-score').textContent = avgScore;
+    const totalProfit = DB.deal_analysis.reduce((s,a) => s + (a.estimated_profit || 0), 0);
+    document.getElementById('stat-profit').textContent = '$' + totalProfit.toLocaleString();
+    const goodDeals = DB.deal_analysis.filter(a => a.deal_score >= 70).length;
+    document.getElementById('stat-good').textContent = goodDeals;
+  }
+}
+
+function deleteProperty(id) {
+  if (!confirm('Remove this property and all its analysis?')) return;
+  DB.properties = DB.properties.filter(p => p.id !== id);
+  DB.deal_analysis = DB.deal_analysis.filter(a => a.property_id !== id);
+  DB.comparables = DB.comparables.filter(c => c.property_id !== id);
+  DB.strategies = DB.strategies.filter(s => s.property_id !== id);
+  renderProperties();
+  updateDashboardStats();
+}
+
+// Init
+renderDashboard();
+renderPipeline();
+</script>
+</body>
+</html>
