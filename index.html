@@ -1448,15 +1448,22 @@ async function doResetPassword() {
   if (p1 !== p2)  { err.textContent = 'Passwords do not match.'; err.style.display = 'block'; return; }
   if (p1.length < 6) { err.textContent = 'Minimum 6 characters.'; err.style.display = 'block'; return; }
   btn.textContent = 'Updating...'; btn.disabled = true;
-  const { error } = await SB.auth.updateUser({ password: p1 });
+  const { data, error } = await SB.auth.updateUser({ password: p1 });
   btn.textContent = 'Update Password →'; btn.disabled = false;
-  if (error) { err.textContent = error.message; err.style.display = 'block'; }
-  else {
+  if (error) {
+    err.textContent = error.message;
+    err.style.display = 'block';
+  } else {
     suc.style.display = 'block';
     btn.style.display = 'none';
+    window._resetMode = false;
+    // Clean URL and redirect to login after 2 seconds
     setTimeout(() => {
+      history.replaceState(null, '', window.location.pathname);
       document.getElementById('reset-password-overlay').style.display = 'none';
-      location.reload();
+      // User is now logged in with new password — handle normally
+      if (data?.user) handleUser(data.user);
+      else { showScreen('auth'); }
     }, 2000);
   }
 }
@@ -1626,12 +1633,34 @@ SB.auth.getSession().then(({ data: { session } }) => {
 
 SB.auth.onAuthStateChange((_event, session) => {
   if (_event === 'PASSWORD_RECOVERY') {
-    // User clicked the reset link — show new password form
     showResetPasswordModal();
     return;
   }
-  if (session && !CURRENT_USER) handleUser(session.user);
+  if (_event === 'SIGNED_IN' && session) {
+    // Don't redirect if we're in password recovery flow
+    if (window._resetMode) return;
+    if (!CURRENT_USER) handleUser(session.user);
+  }
 });
+
+// Detect password reset token in URL on page load
+(function checkResetToken() {
+  const hash = window.location.hash;
+  if (hash && hash.includes('type=recovery')) {
+    window._resetMode = true;
+    // Show blank screen while Supabase processes the token
+    document.getElementById('auth-screen').style.display = 'none';
+    // onAuthStateChange will fire PASSWORD_RECOVERY and show the modal
+  } else if (hash && hash.includes('error=access_denied')) {
+    // Token expired — show login with message
+    showScreen('auth');
+    const errEl = document.getElementById('login-error');
+    errEl.textContent = '⚠️ Reset link expired. Please request a new one.';
+    errEl.style.display = 'block';
+    // Clean up URL
+    history.replaceState(null, '', window.location.pathname);
+  }
+})();
 
 // ══════════════════════════════════════
 //  ADMIN — USER MANAGEMENT
