@@ -1496,7 +1496,7 @@ async function doForgotPassword() {
   if (!email) { errEl.textContent = 'Please enter your email.'; errEl.style.display = 'block'; return; }
   btn.textContent = 'Sending...'; btn.disabled = true;
   const { error } = await SB.auth.resetPasswordForEmail(email, {
-    redirectTo: 'https://n8nproyectos-zeus.wutpdd.easypanel.host'
+    redirectTo: window.location.origin + window.location.pathname
   });
   btn.textContent = 'Send Reset Link →'; btn.disabled = false;
   if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; }
