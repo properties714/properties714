@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Properties714 — Investment Platform</title>
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;900&family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root {
   --bg: #08080d;
@@ -704,18 +705,295 @@ hr.divider { border:none; border-top:1px solid var(--border); margin:20px 0; }
   .strat-grid{grid-template-columns:1fr}
   .room-grid{grid-template-columns:repeat(2,1fr)}
 }
+
+/* ══ AUTH SCREEN ══ */
+#auth-screen {
+  position:fixed; inset:0; z-index:9999;
+  display:flex; align-items:center; justify-content:center;
+  background: var(--bg);
+}
+#auth-screen::before {
+  content:'';
+  position:absolute; inset:0;
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 30%, rgba(212,168,67,0.08) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 60% at 80% 70%, rgba(91,141,238,0.06) 0%, transparent 55%);
+  animation: meshPulse 8s ease-in-out infinite alternate;
+}
+#auth-screen::after {
+  content:'';
+  position:absolute; inset:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+.auth-box {
+  position:relative; z-index:1;
+  width:100%; max-width:420px;
+  background:rgba(15,15,24,0.9);
+  border:1px solid rgba(212,168,67,0.15);
+  border-radius:20px;
+  padding:44px 40px;
+  backdrop-filter:blur(20px);
+  box-shadow:0 0 80px rgba(212,168,67,0.06), 0 32px 64px rgba(0,0,0,0.5);
+  animation: slideUp 0.4s ease;
+}
+.auth-logo {
+  font-family:'Unbounded',sans-serif;
+  font-size:22px;
+  font-weight:900;
+  text-align:center;
+  margin-bottom:6px;
+}
+.auth-logo span { color:var(--gold); text-shadow:0 0 20px rgba(212,168,67,0.5); }
+.auth-tagline {
+  text-align:center;
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:rgba(236,233,226,0.3);
+  margin-bottom:36px;
+}
+.auth-tabs {
+  display:grid; grid-template-columns:1fr 1fr;
+  background:rgba(255,255,255,0.04);
+  border-radius:10px; padding:4px;
+  margin-bottom:28px; gap:4px;
+}
+.auth-tab {
+  padding:9px; text-align:center;
+  font-size:13px; font-weight:700;
+  border-radius:7px; cursor:pointer;
+  color:var(--muted); transition:all 0.18s;
+}
+.auth-tab.active {
+  background:var(--surface2);
+  color:var(--gold);
+  box-shadow:0 2px 8px rgba(0,0,0,0.3);
+}
+.auth-form { display:flex; flex-direction:column; gap:14px; }
+.auth-input-wrap { display:flex; flex-direction:column; gap:6px; }
+.auth-label {
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px; letter-spacing:2px;
+  text-transform:uppercase;
+  color:rgba(236,233,226,0.35);
+}
+.auth-input {
+  background:rgba(255,255,255,0.04);
+  border:1px solid var(--border2);
+  border-radius:10px;
+  padding:12px 14px;
+  font-size:14px;
+  font-family:'Syne',sans-serif;
+  color:var(--text);
+  outline:none;
+  transition:all 0.18s;
+  width:100%;
+}
+.auth-input:focus {
+  border-color:var(--gold);
+  background:rgba(212,168,67,0.04);
+  box-shadow:0 0 0 3px rgba(212,168,67,0.08);
+}
+.auth-input::placeholder { color:rgba(236,233,226,0.18); }
+.auth-btn {
+  margin-top:8px;
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  color:#000; border:none;
+  padding:14px; border-radius:10px;
+  font-size:14px; font-weight:800;
+  font-family:'Syne',sans-serif;
+  cursor:pointer; letter-spacing:0.3px;
+  transition:all 0.18s;
+  box-shadow:0 4px 20px rgba(212,168,67,0.25);
+}
+.auth-btn:hover { transform:translateY(-2px); box-shadow:0 8px 32px rgba(212,168,67,0.4); }
+.auth-btn:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+.auth-error {
+  background:var(--red-dim); border:1px solid rgba(224,85,85,0.2);
+  color:var(--red); border-radius:8px;
+  padding:10px 14px; font-size:12px;
+  display:none;
+}
+.auth-success {
+  background:var(--green-dim); border:1px solid rgba(61,186,122,0.2);
+  color:var(--green); border-radius:8px;
+  padding:12px 14px; font-size:13px;
+  display:none; text-align:center; line-height:1.6;
+}
+/* User menu in header */
+.user-menu { display:flex; align-items:center; gap:10px; }
+.user-avatar {
+  width:30px; height:30px;
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  border-radius:8px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:12px; font-weight:800; color:#000;
+}
+.user-email { font-size:11px; font-family:'JetBrains Mono',monospace; color:var(--muted); }
+.user-logout {
+  font-size:11px; font-family:'JetBrains Mono',monospace;
+  color:rgba(224,85,85,0.7); cursor:pointer;
+  padding:4px 8px; border-radius:6px;
+  border:1px solid rgba(224,85,85,0.15);
+  background:none; transition:all 0.15s;
+}
+.user-logout:hover { color:var(--red); border-color:rgba(224,85,85,0.4); }
+
+/* ── PENDING SCREEN ── */
+#pending-screen {
+  position:fixed; inset:0; z-index:9998;
+  display:none; align-items:center; justify-content:center;
+  background:var(--bg);
+}
+#pending-screen::before {
+  content:''; position:absolute; inset:0;
+  background: radial-gradient(ellipse 60% 50% at 50% 40%, rgba(212,168,67,0.06) 0%, transparent 60%);
+}
+.pending-box {
+  position:relative; z-index:1;
+  width:100%; max-width:420px;
+  background:rgba(15,15,24,0.95);
+  border:1px solid rgba(212,168,67,0.15);
+  border-radius:20px; padding:44px 40px;
+  text-align:center;
+  backdrop-filter:blur(20px);
+  box-shadow:0 0 80px rgba(212,168,67,0.06), 0 32px 64px rgba(0,0,0,0.5);
+  animation:slideUp 0.4s ease;
+}
+.pending-icon { font-size:48px; margin-bottom:20px; animation:pendingSpin 3s linear infinite; display:inline-block; }
+@keyframes pendingSpin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+.pending-title { font-family:'Unbounded',sans-serif; font-size:18px; font-weight:900; margin-bottom:10px; }
+.pending-sub { font-size:13px; color:var(--muted); line-height:1.7; margin-bottom:24px; }
+.pending-email { font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--gold); background:var(--gold-dim); padding:6px 14px; border-radius:6px; display:inline-block; margin-bottom:24px; }
+
+/* ── ADMIN PANEL ── */
+#page-admin { display:none; }
+.admin-user-row {
+  display:flex; align-items:center; gap:14px;
+  padding:14px 16px;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  margin-bottom:8px;
+  transition:border-color 0.15s;
+}
+.admin-user-row:hover { border-color:var(--border2); }
+.admin-avatar {
+  width:38px; height:38px;
+  background:linear-gradient(135deg,rgba(212,168,67,0.2),rgba(91,141,238,0.2));
+  border-radius:8px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:14px; font-weight:800; color:var(--gold);
+  flex-shrink:0;
+}
+.admin-info { flex:1; }
+.admin-name { font-size:13px; font-weight:700; }
+.admin-email-text { font-size:11px; font-family:'JetBrains Mono',monospace; color:var(--muted); margin-top:2px; }
+.admin-date { font-size:10px; color:rgba(236,233,226,0.25); margin-top:2px; }
+.admin-actions { display:flex; gap:8px; }
+.btn-approve {
+  background:var(--green-dim); color:var(--green);
+  border:1px solid rgba(61,186,122,0.2);
+  padding:6px 14px; border-radius:7px;
+  font-size:12px; font-weight:700; cursor:pointer;
+  font-family:'Syne',sans-serif; transition:all 0.15s;
+}
+.btn-approve:hover { background:rgba(61,186,122,0.2); }
+.btn-reject {
+  background:var(--red-dim); color:var(--red);
+  border:1px solid rgba(224,85,85,0.2);
+  padding:6px 14px; border-radius:7px;
+  font-size:12px; font-weight:700; cursor:pointer;
+  font-family:'Syne',sans-serif; transition:all 0.15s;
+}
+.btn-reject:hover { background:rgba(224,85,85,0.2); }
+.notification-dot {
+  width:8px; height:8px; background:var(--red);
+  border-radius:50%; display:inline-block;
+  margin-left:5px; vertical-align:middle;
+  box-shadow:0 0 6px var(--red);
+  animation:glow 1.5s infinite;
+}
 </style>
 </head>
 <body>
+
+<!-- ══ AUTH SCREEN ══ -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <div class="auth-logo">Properties<span>714</span></div>
+    <div class="auth-tagline">Investment Platform</div>
+    <div class="auth-tabs">
+      <div class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Sign In</div>
+      <div class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">Request Access</div>
+    </div>
+    <!-- LOGIN -->
+    <div id="form-login" class="auth-form">
+      <div class="auth-input-wrap">
+        <div class="auth-label">Email</div>
+        <input class="auth-input" id="login-email" type="email" placeholder="you@email.com">
+      </div>
+      <div class="auth-input-wrap">
+        <div class="auth-label">Password</div>
+        <input class="auth-input" id="login-pass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <div class="auth-error" id="login-error"></div>
+      <button class="auth-btn" id="login-btn" onclick="doLogin()">Sign In →</button>
+    </div>
+    <!-- REGISTER -->
+    <div id="form-register" class="auth-form" style="display:none">
+      <div class="auth-input-wrap">
+        <div class="auth-label">Full Name</div>
+        <input class="auth-input" id="reg-name" type="text" placeholder="John Smith">
+      </div>
+      <div class="auth-input-wrap">
+        <div class="auth-label">Email</div>
+        <input class="auth-input" id="reg-email" type="email" placeholder="you@email.com">
+      </div>
+      <div class="auth-input-wrap">
+        <div class="auth-label">Password</div>
+        <input class="auth-input" id="reg-pass" type="password" placeholder="Min. 6 characters">
+      </div>
+      <div class="auth-error" id="reg-error"></div>
+      <div class="auth-success" id="reg-success">✅ Request received!<br>You'll get an email once your account is approved.</div>
+      <button class="auth-btn" id="reg-btn" onclick="doRegister()">Request Access →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PENDING SCREEN ══ -->
+<div id="pending-screen">
+  <div class="pending-box">
+    <div class="pending-icon">⏳</div>
+    <div class="pending-title">Access Pending</div>
+    <div class="pending-sub">Your account is waiting for admin approval.<br>You'll receive an email once it's approved.</div>
+    <div class="pending-email" id="pending-email-show"></div>
+    <button class="auth-btn" onclick="doLogout()" style="width:100%">Sign Out</button>
+  </div>
+</div>
+
+<!-- ══ MAIN APP (hidden until auth) ══ -->
+<div id="main-app" style="display:none">
 
 <header>
   <div class="logo">
     Properties<span class="logo-714">714</span>
     <span class="logo-badge">PRO</span>
   </div>
-  <div class="header-status">
-    <span class="pulse"></span>
-    System Online
+  <div style="display:flex;align-items:center;gap:16px">
+    <div class="header-status">
+      <span class="pulse"></span>
+      System Online
+    </div>
+    <div class="user-menu" id="user-menu-wrap">
+      <div class="user-avatar" id="user-avatar-initials">?</div>
+      <div class="user-email" id="user-email-display"></div>
+      <button class="user-logout" onclick="doLogout()">Sign Out</button>
+    </div>
   </div>
 </header>
 
@@ -743,6 +1021,10 @@ hr.divider { border:none; border-top:1px solid var(--border); margin:20px 0; }
     <div class="nav-group-label">Tools</div>
     <div class="nav-item" onclick="nav('scripts',this)"><span class="nav-icon">📋</span>Scripts</div>
     <div class="nav-item" onclick="nav('docs',this)"><span class="nav-icon">📄</span>Documents</div>
+  </div>
+  <div class="nav-group" id="admin-nav-group" style="display:none">
+    <div class="nav-group-label">Admin</div>
+    <div class="nav-item" id="admin-nav-item" onclick="nav('admin',this)"><span class="nav-icon">🛡</span>Users <span id="pending-dot" class="notification-dot" style="display:none"></span></div>
   </div>
 </nav>
 
@@ -923,6 +1205,50 @@ hr.divider { border:none; border-top:1px solid var(--border); margin:20px 0; }
   <div class="grid-2" id="docs-grid"></div>
 </div>
 
+<!-- ══════════ ADMIN — USER MANAGEMENT ══════════ -->
+<div id="page-admin" class="page">
+  <div class="page-hd">
+    <div>
+      <div class="page-title">User Management</div>
+      <div class="page-sub">Approve or reject access requests</div>
+    </div>
+    <button class="btn btn-ghost" onclick="loadAdminUsers()">↻ Refresh</button>
+  </div>
+
+  <!-- Pending -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-title" style="display:flex;align-items:center;gap:8px">
+      Pending Approval
+      <span id="admin-pending-count" class="badge badge-amber">0</span>
+    </div>
+    <div id="admin-pending-list">
+      <div class="empty" style="padding:30px"><div class="empty-icon">⏳</div><p>No pending requests</p></div>
+    </div>
+  </div>
+
+  <!-- Approved -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-title" style="display:flex;align-items:center;gap:8px">
+      Approved Users
+      <span id="admin-approved-count" class="badge badge-green">0</span>
+    </div>
+    <div id="admin-approved-list">
+      <div class="empty" style="padding:30px"><div class="empty-icon">✅</div><p>No approved users</p></div>
+    </div>
+  </div>
+
+  <!-- Rejected -->
+  <div class="card">
+    <div class="card-title" style="display:flex;align-items:center;gap:8px">
+      Rejected
+      <span id="admin-rejected-count" class="badge badge-red">0</span>
+    </div>
+    <div id="admin-rejected-list">
+      <div class="empty" style="padding:30px"><div class="empty-icon">❌</div><p>No rejected users</p></div>
+    </div>
+  </div>
+</div>
+
 </main>
 </div>
 
@@ -983,16 +1309,272 @@ hr.divider { border:none; border-top:1px solid var(--border); margin:20px 0; }
     <div class="form-group"><div class="form-label">Description</div><textarea class="form-input" id="lim-desc" placeholder="3/2, needs full rehab, great neighborhood..."></textarea></div>
     <button class="btn btn-gold" onclick="saveListing()" style="width:100%;justify-content:center">Publish to Network</button>
   </div>
-</div>
+</div><!-- end modal-listing -->
+
+</div><!-- end #main-app -->
 
 <script>
 // ══════════════════════════════════════
-//  CONFIG
+//  CONFIG — REPLACE WITH YOUR VALUES
 // ══════════════════════════════════════
+const SUPABASE_URL  = 'https://YOUR_PROJECT.supabase.co';
+const SUPABASE_ANON = 'YOUR_ANON_KEY';
 const N8N = 'https://n8n.properties714.com/webhook/gpai-analyze-deal';
 
+// ── Init Supabase ──
+const { createClient } = supabase;
+const SB = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+let CURRENT_USER    = null;
+let CURRENT_PROFILE = null;
+
 // ══════════════════════════════════════
-//  STATE
+//  AUTH SCREENS
+// ══════════════════════════════════════
+function showScreen(name) {
+  document.getElementById('auth-screen').style.display    = name==='auth'    ? 'flex' : 'none';
+  document.getElementById('pending-screen').style.display = name==='pending' ? 'flex' : 'none';
+  document.getElementById('main-app').style.display       = name==='app'     ? 'block': 'none';
+}
+
+function switchAuthTab(tab) {
+  document.getElementById('tab-login').classList.toggle('active', tab==='login');
+  document.getElementById('tab-register').classList.toggle('active', tab==='register');
+  document.getElementById('form-login').style.display    = tab==='login'    ? 'flex':'none';
+  document.getElementById('form-register').style.display = tab==='register' ? 'flex':'none';
+}
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('login-pass').value;
+  const errEl = document.getElementById('login-error');
+  const btn   = document.getElementById('login-btn');
+  errEl.style.display='none';
+  if (!email||!pass) { errEl.textContent='Enter email and password.'; errEl.style.display='block'; return; }
+  btn.disabled=true; btn.textContent='Signing in...';
+  const { data, error } = await SB.auth.signInWithPassword({ email, password: pass });
+  btn.disabled=false; btn.textContent='Sign In →';
+  if (error) { errEl.textContent=error.message; errEl.style.display='block'; return; }
+  await handleUser(data.user);
+}
+
+async function doRegister() {
+  const name  = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const pass  = document.getElementById('reg-pass').value;
+  const errEl = document.getElementById('reg-error');
+  const sucEl = document.getElementById('reg-success');
+  const btn   = document.getElementById('reg-btn');
+  errEl.style.display='none'; sucEl.style.display='none';
+  if (!name||!email||!pass) { errEl.textContent='All fields required.'; errEl.style.display='block'; return; }
+  if (pass.length<6) { errEl.textContent='Password must be at least 6 characters.'; errEl.style.display='block'; return; }
+  btn.disabled=true; btn.textContent='Sending request...';
+  const { data, error } = await SB.auth.signUp({
+    email, password: pass,
+    options: { data: { full_name: name } }
+  });
+  btn.disabled=false; btn.textContent='Request Access →';
+  if (error) { errEl.textContent=error.message; errEl.style.display='block'; return; }
+  sucEl.style.display='block';
+  // If email confirmation off, go to pending screen
+  if (data.session) await handleUser(data.user);
+}
+
+async function doLogout() {
+  await SB.auth.signOut();
+  CURRENT_USER = null; CURRENT_PROFILE = null;
+  DB.properties=[]; DB.analysis=[]; DB.contacts=[];
+  showScreen('auth');
+}
+
+// ── Route user based on profile status ──
+async function handleUser(user) {
+  CURRENT_USER = user;
+  // Fetch profile
+  const { data: profile } = await SB.from('user_profiles')
+    .select('*').eq('id', user.id).single();
+  CURRENT_PROFILE = profile;
+
+  if (!profile || profile.approval_status === 'pending') {
+    // Show pending screen
+    document.getElementById('pending-email-show').textContent = user.email;
+    showScreen('pending');
+    // Poll every 30s in case admin approves while waiting
+    const poll = setInterval(async () => {
+      const { data: p } = await SB.from('user_profiles').select('status').eq('id', user.id).single();
+      if (p?.approval_status === 'approved') { clearInterval(poll); enterApp(user, {...profile, ...p}); }
+    }, 30000);
+    return;
+  }
+
+  if (profile.approval_status === 'rejected') {
+    await SB.auth.signOut();
+    const errEl = document.getElementById('login-error');
+    errEl.textContent = 'Your access request was not approved. Contact the administrator.';
+    errEl.style.display='block';
+    showScreen('auth');
+    return;
+  }
+
+  if (profile.approval_status === 'approved') {
+    enterApp(user, profile);
+  }
+}
+
+function enterApp(user, profile) {
+  CURRENT_USER = user; CURRENT_PROFILE = profile;
+  showScreen('app');
+  // Update header
+  const initials = (profile?.full_name||user.email||'U').substring(0,2).toUpperCase();
+  document.getElementById('user-avatar-initials').textContent = initials;
+  document.getElementById('user-email-display').textContent = user.email;
+  // Show admin panel if admin
+  if (profile?.role === 'admin') {
+    document.getElementById('admin-nav-group').style.display = 'block';
+    checkPendingCount();
+  }
+  loadUserData();
+  renderDashboard();
+  renderScripts();
+  renderDocs();
+}
+
+// ── Check session on load ──
+SB.auth.getSession().then(({ data: { session } }) => {
+  if (session) handleUser(session.user);
+});
+
+SB.auth.onAuthStateChange((_event, session) => {
+  if (session && !CURRENT_USER) handleUser(session.user);
+});
+
+// ══════════════════════════════════════
+//  ADMIN — USER MANAGEMENT
+// ══════════════════════════════════════
+async function checkPendingCount() {
+  const { data } = await SB.from('user_profiles')
+    .select('id').eq('approval_status','pending');
+  const count = data?.length || 0;
+  document.getElementById('pending-dot').style.display = count > 0 ? 'inline-block' : 'none';
+}
+
+async function loadAdminUsers() {
+  if (!CURRENT_PROFILE || CURRENT_PROFILE.role !== 'admin') return;
+  const { data: users } = await SB.from('user_profiles').select('*').order('created_at', {ascending:false});
+  if (!users) return;
+  const pending  = users.filter(u=>u.approval_status==='pending');
+  const approved = users.filter(u=>u.approval_status==='approved');
+  const rejected = users.filter(u=>u.approval_status==='rejected');
+
+  document.getElementById('admin-pending-count').textContent  = pending.length;
+  document.getElementById('admin-approved-count').textContent = approved.length;
+  document.getElementById('admin-rejected-count').textContent = rejected.length;
+  document.getElementById('pending-dot').style.display = pending.length>0?'inline-block':'none';
+
+  const fmt = (u, actions) => `
+    <div class="admin-user-row">
+      <div class="admin-avatar">${(u.full_name||u.id).substring(0,2).toUpperCase()}</div>
+      <div class="admin-info">
+        <div class="admin-name">${u.full_name||'—'}</div>
+        <div class="admin-email-text">${u.id}</div>
+        <div class="admin-date">Requested: ${new Date(u.created_at).toLocaleDateString()}</div>
+      </div>
+      ${actions}
+    </div>`;
+
+  document.getElementById('admin-pending-list').innerHTML = pending.length
+    ? pending.map(u=>fmt(u,`
+        <div class="admin-actions">
+          <button class="btn-approve" onclick="adminApprove('${u.id}')">✓ Approve</button>
+          <button class="btn-reject"  onclick="adminReject('${u.id}')">✕ Reject</button>
+        </div>`)).join('')
+    : '<div class="empty" style="padding:20px"><p>No pending requests</p></div>';
+
+  document.getElementById('admin-approved-list').innerHTML = approved.length
+    ? approved.filter(u=>u.id!==CURRENT_USER.id).map(u=>fmt(u,`
+        <div class="admin-actions">
+          <button class="btn-reject" onclick="adminReject('${u.id}')">Revoke</button>
+        </div>`)).join('') || '<div class="empty" style="padding:20px"><p>Only you are approved</p></div>'
+    : '<div class="empty" style="padding:20px"><p>No approved users</p></div>';
+
+  document.getElementById('admin-rejected-list').innerHTML = rejected.length
+    ? rejected.map(u=>fmt(u,`
+        <div class="admin-actions">
+          <button class="btn-approve" onclick="adminApprove('${u.id}')">Re-approve</button>
+        </div>`)).join('')
+    : '<div class="empty" style="padding:20px"><p>None rejected</p></div>';
+}
+
+async function adminApprove(userId) {
+  await SB.from('user_profiles').update({
+    approval_status:'approved', approved_by:CURRENT_USER.id, approved_at:new Date().toISOString()
+  }).eq('id', userId);
+  loadAdminUsers();
+}
+
+async function adminReject(userId) {
+  const reason = prompt('Reason for rejection (optional):') || '';
+  await SB.from('user_profiles').update({
+    approval_status:'rejected', reject_reason:reason, rejected_at:new Date().toISOString()
+  }).eq('id', userId);
+  loadAdminUsers();
+}
+
+// ══════════════════════════════════════
+//  LOAD USER DATA FROM SUPABASE
+// ══════════════════════════════════════
+async function loadUserData() {
+  if (!CURRENT_USER) return;
+  try {
+    const [propsRes, analysisRes, contactsRes] = await Promise.all([
+      SB.from('properties').select('*').eq('user_id', CURRENT_USER.id).order('created_at', {ascending:false}),
+      SB.from('deal_analysis').select('*').eq('user_id', CURRENT_USER.id),
+      SB.from('contacts').select('*').eq('user_id', CURRENT_USER.id)
+    ]);
+    if (propsRes.data)    DB.properties = propsRes.data.map(p=>({...p, asking_price:p.asking_price||0}));
+    if (analysisRes.data) DB.analysis   = analysisRes.data;
+    if (contactsRes.data) DB.contacts   = contactsRes.data.map(c=>({...c, name:c.full_name}));
+    updateStats();
+    renderDashboard();
+  } catch(e) { console.warn('Supabase load error:', e); }
+}
+
+// ══════════════════════════════════════
+//  SAVE TO SUPABASE HELPERS
+// ══════════════════════════════════════
+async function sbSaveProperty(prop) {
+  if (!CURRENT_USER) return null;
+  const { data, error } = await SB.from('properties').insert({
+    user_id: CURRENT_USER.id,
+    address: prop.address, city: prop.city, state: 'GA', zip: prop.zip,
+    asking_price: prop.asking_price, estimated_rehab: prop.estimated_rehab,
+    strategy_candidate: prop.strategy_candidate, status: 'analyzing'
+  }).select().single();
+  if (error) { console.warn('Save property error:', error); return null; }
+  return data;
+}
+
+async function sbSaveAnalysis(analysis) {
+  if (!CURRENT_USER) return;
+  const { error } = await SB.from('deal_analysis').insert({
+    user_id: CURRENT_USER.id, ...analysis
+  });
+  if (error) console.warn('Save analysis error:', error);
+}
+
+async function sbSaveContact(contact) {
+  if (!CURRENT_USER) return null;
+  const { data, error } = await SB.from('contacts').insert({
+    user_id: CURRENT_USER.id,
+    full_name: contact.name, type: contact.type,
+    phone: contact.phone, email: contact.email, notes: contact.notes
+  }).select().single();
+  if (error) { console.warn('Save contact error:', error); return null; }
+  return data;
+}
+
+// ══════════════════════════════════════
+//  IN-MEMORY STATE (cache)
 // ══════════════════════════════════════
 const DB = {
   properties: [], analysis: [], comparables: [], strategies: [],
@@ -1017,6 +1599,7 @@ function nav(id, el) {
   if (id === 'scripts') renderScripts();
   if (id === 'docs') renderDocs();
   if (id === 'repairs') initRepairs();
+  if (id === 'admin') loadAdminUsers();
 }
 
 // ══════════════════════════════════════
@@ -1136,8 +1719,25 @@ async function analyzeDeal() {
     ? `<span class="badge badge-amber">⚠ Local mode</span>`
     : `<span class="badge badge-green">✓ Saved to Supabase</span>`;
 
-  // Save to local DB
-  const pid = result.property_id||DB.nid.p++;
+  // Save to Supabase
+  let savedPropId = null;
+  const propPayload = { address:addr, city, zip, asking_price:purchase, estimated_rehab:rehab, strategy_candidate:a.best_strategy||'fix_flip' };
+  const sbProp = await sbSaveProperty(propPayload);
+  if (sbProp) {
+    savedPropId = sbProp.id;
+    await sbSaveAnalysis({
+      property_id: sbProp.id,
+      arv: a.arv||0, purchase_price: purchase, rehab_cost: rehab,
+      closing_costs: closing, holding_cost: holding, agent_fees: agent,
+      total_investment: a.total_investment||0,
+      estimated_profit: a.estimated_profit||0,
+      roi: a.roi||0, deal_score: score,
+      recommendation: rec, ai_advisor: result.ai_advisor||''
+    });
+  }
+
+  // Save to local cache
+  const pid = savedPropId || result.property_id||DB.nid.p++;
   DB.properties.push({ id:pid, address:addr, city, zip, asking_price:purchase, estimated_arv:a.arv||0, estimated_rehab:rehab, strategy_candidate:a.best_strategy||'fix_flip', status:'analyzing', created_at:new Date() });
   DB.analysis.push({ id:DB.nid.a++, property_id:pid, arv:a.arv||0, total_investment:a.total_investment||0, estimated_profit:a.estimated_profit||0, roi:a.roi||0, deal_score:score, recommendation:rec, created_at:new Date() });
   comps.forEach(c => DB.comparables.push({ id:DB.nid.c++, property_id:pid, ...c }));
@@ -1299,17 +1899,21 @@ function exportRepairs() {
 // ══════════════════════════════════════
 //  CRM
 // ══════════════════════════════════════
-function saveContact() {
+async function saveContact() {
   const name = document.getElementById('cm-name').value.trim();
   if (!name) return;
-  DB.contacts.push({
+  const contact = {
     id:DB.nid.co++, name,
     type: document.getElementById('cm-type').value,
     phone: document.getElementById('cm-phone').value,
     email: document.getElementById('cm-email').value,
     notes: document.getElementById('cm-notes').value,
     created_at: new Date()
-  });
+  };
+  // Save to Supabase
+  const saved = await sbSaveContact(contact);
+  if (saved) contact.id = saved.id;
+  DB.contacts.push(contact);
   closeModal('modal-contact');
   ['cm-name','cm-phone','cm-email','cm-notes'].forEach(id=>document.getElementById(id).value='');
   renderCRM('all');
