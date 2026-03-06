@@ -1124,47 +1124,12 @@ function getRecBadge(rec) {
 }
 
 // ══════════════════════════════════════
-//  AI RECOMMENDATION via Anthropic API
+//  N8N WEBHOOK URL
 // ══════════════════════════════════════
-async function getAIRecommendation(data) {
-  const prompt = `You are an expert real estate investment advisor. Analyze this deal and provide a concise recommendation (3-4 sentences max). Be direct and actionable.
-
-Property: ${data.address}
-ARV: $${data.arv.toLocaleString()}
-Purchase Price: $${data.purchase.toLocaleString()}
-Rehab Cost: $${data.rehab.toLocaleString()}
-Total Investment: $${data.total.toLocaleString()}
-Estimated Profit (Fix & Flip): $${data.profit.toLocaleString()}
-ROI: ${data.roi.toFixed(1)}%
-Deal Score: ${data.score}/100
-Wholesale MAO: $${data.mao.toLocaleString()}
-Est. Monthly Rent: $${data.rent.toLocaleString()}
-Monthly Cashflow (Rental): $${data.cashflow.toFixed(0)}
-Cap Rate: ${data.cap_rate.toFixed(1)}%
-
-Recommendation category: ${data.recommendation}
-
-Provide a brief analysis highlighting the strongest strategy, key risks, and one specific action to take.`;
-
-  try {
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 1000,
-        messages: [{ role: "user", content: prompt }]
-      })
-    });
-    const d = await response.json();
-    return d.content?.[0]?.text || "Analysis complete. Review the metrics above.";
-  } catch (e) {
-    return "AI analysis unavailable. Review the calculated metrics above to make your investment decision.";
-  }
-}
+const N8N_WEBHOOK = 'https://n8n.properties714.com/webhook/gpai-analyze-deal';
 
 // ══════════════════════════════════════
-//  MAIN ANALYZER
+//  MAIN ANALYZER — conectado a n8n
 // ══════════════════════════════════════
 async function analyzeDeal() {
   const address = document.getElementById('f-address').value.trim();
@@ -1185,60 +1150,99 @@ async function analyzeDeal() {
   document.getElementById('analyzer-loading').style.display = 'flex';
   document.getElementById('analyzer-result').style.display = 'none';
 
-  // Calculations
-  const arv = comps.length > 0 ? calcARV(comps) : (purchase * 1.45);
-  const ff = calcFixFlip(purchase, rehab, closing, holding, agent, arv);
-  const ws = calcWholesale(arv, rehab);
-  const rl = calcRental(purchase, rent || arv * 0.008);
-  const score = calcDealScore(ff.profit, ff.roi, rehab, arv);
-  const rec = getRecommendation(score, ff.profit, ff.roi);
-
-  // Determine best strategy
-  let bestStrategy = 'fix_flip';
-  if (ff.profit < 20000 && rl.cap_rate > 6) bestStrategy = 'rental';
-  if (ff.profit < 15000) bestStrategy = 'wholesale';
-
-  // Get AI recommendation
-  const aiData = {
-    address, arv, purchase, rehab, total: ff.total,
-    profit: ff.profit, roi: ff.roi, score, recommendation: rec,
-    mao: ws.mao, rent: rent || arv * 0.008,
-    cashflow: rl.cashflow, cap_rate: rl.cap_rate
+  // Payload para n8n
+  const payload = {
+    address, city, state: 'GA', zip,
+    asking_price: purchase,
+    estimated_rehab: rehab,
+    closing_costs: closing,
+    holding_cost: holding,
+    agent_fees: agent,
+    estimated_rent: rent,
+    comparables: comps
   };
-  const aiText = await getAIRecommendation(aiData);
 
-  // Save to DB
-  const propId = DB.nextId.prop++;
+  let result;
+  try {
+    const response = await fetch(N8N_WEBHOOK, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) throw new Error(`n8n error: ${response.status}`);
+    result = await response.json();
+
+  } catch (err) {
+    // Fallback local si n8n no responde
+    console.warn('n8n no disponible, calculando local:', err.message);
+    const arv = comps.length > 0 ? calcARV(comps) : (purchase * 1.45);
+    const ff = calcFixFlip(purchase, rehab, closing, holding, agent, arv);
+    const ws = calcWholesale(arv, rehab);
+    const rl = calcRental(purchase, rent || arv * 0.008);
+    const score = calcDealScore(ff.profit, ff.roi, rehab, arv);
+    const rec = getRecommendation(score, ff.profit, ff.roi);
+    let best = 'fix_flip';
+    if (ff.profit < 20000 && rl.cap_rate > 6) best = 'rental';
+    if (ff.profit < 15000) best = 'wholesale';
+    result = {
+      status: 'local',
+      property_id: Date.now(),
+      address,
+      analysis: { arv, purchase_price: purchase, rehab_cost: rehab, total_investment: ff.total, estimated_profit: ff.profit, roi: ff.roi, deal_score: score, recommendation: rec, best_strategy: best },
+      strategies: {
+        fix_flip: { profit: ff.profit, roi: ff.roi },
+        wholesale: { mao: Math.round(ws.mao), assignment_fee: Math.round(ws.fee) },
+        rental: { monthly_rent: Math.round(rent || arv*0.008), monthly_cashflow: Math.round(rl.cashflow), cap_rate: rl.cap_rate, cash_on_cash: rl.coc }
+      },
+      ai_advisor: 'Cálculo local (n8n no disponible). Verifica tu conexión.',
+      comps_used: comps.length
+    };
+  }
+
+  // Extraer datos de la respuesta (n8n o local)
+  const a = result.analysis || {};
+  const s = result.strategies || {};
+  const ff_s = s.fix_flip || {};
+  const ws_s = s.wholesale || {};
+  const rl_s = s.rental || {};
+
+  const arv = a.arv || 0;
+  const totalInv = a.total_investment || 0;
+  const profit = a.estimated_profit || 0;
+  const roi = a.roi || 0;
+  const score = a.deal_score || 0;
+  const rec = a.recommendation || 'REJECT';
+  const aiText = result.ai_advisor || 'Análisis completado.';
+  const bestStrategy = a.best_strategy || 'fix_flip';
+  const isLocal = result.status === 'local';
+
+  // Guardar en DB local para el pipeline
+  const propId = result.property_id || DB.nextId.prop++;
   DB.properties.push({
     id: propId, address, city, state: 'GA', zip,
     asking_price: purchase, estimated_arv: arv,
     estimated_rehab: rehab, strategy_candidate: bestStrategy,
-    status: 'new', created_at: new Date()
+    status: 'analyzing', created_at: new Date()
   });
-
   comps.forEach(c => {
     DB.comparables.push({ id: DB.nextId.comp++, property_id: propId, ...c });
   });
-
   DB.deal_analysis.push({
     id: DB.nextId.analysis++, property_id: propId,
     arv, purchase_price: purchase, rehab_cost: rehab,
-    closing_costs: closing, holding_cost: holding, agent_fees: agent,
-    total_investment: ff.total, estimated_profit: ff.profit,
-    roi: ff.roi, deal_score: score, recommendation: rec,
+    total_investment: totalInv, estimated_profit: profit,
+    roi, deal_score: score, recommendation: rec,
     created_at: new Date()
   });
 
-  DB.strategies.push(
-    { id: DB.nextId.strategy++, property_id: propId, strategy_type: 'fix_flip', estimated_profit: ff.profit, roi: ff.roi },
-    { id: DB.nextId.strategy++, property_id: propId, strategy_type: 'wholesale', assignment_fee: ws.fee, mao: ws.mao },
-    { id: DB.nextId.strategy++, property_id: propId, strategy_type: 'rental', estimated_rent: rent || arv*0.008, monthly_cashflow: rl.cashflow, cap_rate: rl.cap_rate, cash_on_cash: rl.coc }
-  );
-
-  // Render result
+  // Render resultado
   const scoreColor = getScoreColor(score);
   const recIcon = rec === 'GOOD DEAL' ? '✅' : rec === 'MARGINAL DEAL' ? '⚠️' : '❌';
-  const compsNote = comps.length > 0 ? `ARV calculated from ${comps.length} comparable(s)` : 'ARV estimated (no comps entered)';
+  const compsNote = result.comps_used > 0 ? `ARV from ${result.comps_used} comparable(s)` : 'ARV estimated';
+  const savedTag = isLocal
+    ? `<span style="background:rgba(181,69,11,0.3);color:#fcd5a0;padding:4px 10px;border-radius:20px;font-size:11px;font-family:'DM Mono',monospace;">⚠ Local — n8n offline</span>`
+    : `<span style="background:rgba(45,106,79,0.3);color:#a7f3d0;padding:4px 10px;border-radius:20px;font-size:11px;font-family:'DM Mono',monospace;">✓ Saved to Supabase</span>`;
 
   document.getElementById('analyzer-loading').style.display = 'none';
   document.getElementById('analyzer-result').style.display = 'block';
@@ -1248,7 +1252,7 @@ async function analyzeDeal() {
         <div>
           <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(245,242,237,0.4);margin-bottom:6px;">${address}</div>
           <div class="result-recommendation">${recIcon} ${rec}</div>
-          <div style="font-size:12px;color:rgba(245,242,237,0.4);margin-top:6px;">${compsNote}</div>
+          <div style="font-size:12px;color:rgba(245,242,237,0.4);margin-top:6px;">${compsNote} &nbsp;${savedTag}</div>
         </div>
         <div class="result-score-big">
           <div class="score-label">Deal Score</div>
@@ -1263,15 +1267,15 @@ async function analyzeDeal() {
         </div>
         <div class="result-metric">
           <div class="m-label">Total Investment</div>
-          <div class="m-val">$${ff.total.toLocaleString()}</div>
+          <div class="m-val">$${totalInv.toLocaleString()}</div>
         </div>
         <div class="result-metric">
           <div class="m-label">Est. Profit</div>
-          <div class="m-val" style="color:${ff.profit > 0 ? '#4ade80' : '#f87171'}">$${ff.profit.toLocaleString()}</div>
+          <div class="m-val" style="color:${profit > 0 ? '#4ade80' : '#f87171'}">$${Math.round(profit).toLocaleString()}</div>
         </div>
         <div class="result-metric">
           <div class="m-label">ROI</div>
-          <div class="m-val" style="color:${ff.roi > 15 ? '#4ade80' : '#f87171'}">${ff.roi.toFixed(1)}%</div>
+          <div class="m-val" style="color:${roi > 15 ? '#4ade80' : '#f87171'}">${parseFloat(roi).toFixed(1)}%</div>
         </div>
       </div>
 
@@ -1285,25 +1289,21 @@ async function analyzeDeal() {
           <div class="strategy-row"><span>Purchase</span><strong>$${purchase.toLocaleString()}</strong></div>
           <div class="strategy-row"><span>Rehab</span><strong>$${rehab.toLocaleString()}</strong></div>
           <div class="strategy-row"><span>Costs</span><strong>$${(closing+holding+agent).toLocaleString()}</strong></div>
-          <div class="strategy-row"><span>Total In</span><strong>$${ff.total.toLocaleString()}</strong></div>
-          <div class="strategy-row"><span>Profit</span><strong style="color:#4ade80">$${ff.profit.toLocaleString()}</strong></div>
-          <div class="strategy-row"><span>ROI</span><strong style="color:#4ade80">${ff.roi.toFixed(1)}%</strong></div>
+          <div class="strategy-row"><span>Total In</span><strong>$${totalInv.toLocaleString()}</strong></div>
+          <div class="strategy-row"><span>Profit</span><strong style="color:#4ade80">$${Math.round(profit).toLocaleString()}</strong></div>
+          <div class="strategy-row"><span>ROI</span><strong style="color:#4ade80">${parseFloat(roi).toFixed(1)}%</strong></div>
         </div>
         <div class="strategy-card">
           <div class="strategy-type">Wholesale</div>
-          <div class="strategy-row"><span>ARV × 70%</span><strong>$${Math.round(arv*0.70).toLocaleString()}</strong></div>
-          <div class="strategy-row"><span>− Rehab</span><strong>$${rehab.toLocaleString()}</strong></div>
-          <div class="strategy-row"><span>= MAO</span><strong>$${Math.round(ws.mao).toLocaleString()}</strong></div>
-          <div class="strategy-row"><span>Assignment Fee</span><strong style="color:#4ade80">$${Math.round(ws.fee).toLocaleString()}</strong></div>
-          <div class="strategy-row"><span>Est. Buyer Profit</span><strong>$${Math.round(arv - ws.mao - rehab).toLocaleString()}</strong></div>
+          <div class="strategy-row"><span>MAO</span><strong>$${(ws_s.mao||0).toLocaleString()}</strong></div>
+          <div class="strategy-row"><span>Assignment Fee</span><strong style="color:#4ade80">$${(ws_s.assignment_fee||0).toLocaleString()}</strong></div>
         </div>
         <div class="strategy-card">
           <div class="strategy-type">Rental</div>
-          <div class="strategy-row"><span>Monthly Rent</span><strong>$${Math.round(rent || arv*0.008).toLocaleString()}</strong></div>
-          <div class="strategy-row"><span>Monthly Expenses</span><strong>$${Math.round(rl.expenses).toLocaleString()}</strong></div>
-          <div class="strategy-row"><span>Cashflow/mo</span><strong style="color:${rl.cashflow>0?'#4ade80':'#f87171'}">$${Math.round(rl.cashflow).toLocaleString()}</strong></div>
-          <div class="strategy-row"><span>Cap Rate</span><strong>${rl.cap_rate.toFixed(1)}%</strong></div>
-          <div class="strategy-row"><span>Cash-on-Cash</span><strong>${rl.coc.toFixed(1)}%</strong></div>
+          <div class="strategy-row"><span>Monthly Rent</span><strong>$${(rl_s.monthly_rent||0).toLocaleString()}</strong></div>
+          <div class="strategy-row"><span>Cashflow/mo</span><strong style="color:${(rl_s.monthly_cashflow||0)>0?'#4ade80':'#f87171'}">$${Math.round(rl_s.monthly_cashflow||0).toLocaleString()}</strong></div>
+          <div class="strategy-row"><span>Cap Rate</span><strong>${parseFloat(rl_s.cap_rate||0).toFixed(1)}%</strong></div>
+          <div class="strategy-row"><span>Cash-on-Cash</span><strong>${parseFloat(rl_s.cash_on_cash||0).toFixed(1)}%</strong></div>
         </div>
       </div>
     </div>
