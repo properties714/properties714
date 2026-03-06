@@ -1021,10 +1021,11 @@ hr.divider { border:none; border-top:1px solid var(--border); margin:20px 0; }
     <div class="nav-group-label">Tools</div>
     <div class="nav-item" onclick="nav('scripts',this)"><span class="nav-icon">📋</span>Scripts</div>
     <div class="nav-item" onclick="nav('docs',this)"><span class="nav-icon">📄</span>Documents</div>
+    <div class="nav-item" onclick="nav('settings',this)"><span class="nav-icon">⚙️</span>Settings</div>
   </div>
   <div class="nav-group" id="admin-nav-group" style="display:none">
     <div class="nav-group-label">Admin</div>
-    <div class="nav-item" id="admin-nav-item" onclick="nav('admin',this)"><span class="nav-icon">🛡</span>Users <span id="pending-dot" class="notification-dot" style="display:none"></span></div>
+    <div class="nav-item" id="admin-nav-item" onclick="nav('admin',this);loadAdminUsers()"><span class="nav-icon">🛡</span>Users <span id="pending-dot" class="notification-dot" style="display:none"></span></div>
   </div>
 </nav>
 
@@ -1205,6 +1206,65 @@ hr.divider { border:none; border-top:1px solid var(--border); margin:20px 0; }
   <div class="grid-2" id="docs-grid"></div>
 </div>
 
+<!-- ══════════ SETTINGS ══════════ -->
+<div id="page-settings" class="page">
+  <div class="page-hd">
+    <div><div class="page-title">Account Settings</div><div class="page-sub">Manage your account</div></div>
+  </div>
+  <div style="max-width:520px;display:flex;flex-direction:column;gap:16px">
+
+    <div class="card">
+      <div class="card-title">Profile</div>
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
+        <div style="width:52px;height:52px;background:linear-gradient(135deg,var(--gold),var(--gold2));border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#000" id="settings-avatar">?</div>
+        <div>
+          <div style="font-size:15px;font-weight:700" id="settings-name-display">—</div>
+          <div style="font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--muted)" id="settings-email-display">—</div>
+          <div style="margin-top:4px" id="settings-role-badge"></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">Full Name</div>
+        <input class="form-input" id="set-name" placeholder="Your name">
+      </div>
+      <button class="btn btn-ghost" onclick="saveProfileName()" style="width:100%;justify-content:center">Save Name</button>
+      <div id="settings-profile-msg" style="font-size:12px;color:var(--green);text-align:center;margin-top:8px;display:none"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Change Email</div>
+      <div class="form-group">
+        <div class="form-label">New Email Address</div>
+        <input class="form-input" id="set-email" type="email" placeholder="new@email.com">
+      </div>
+      <button class="btn btn-ghost" onclick="changeEmail()" style="width:100%;justify-content:center">Update Email</button>
+      <div style="font-size:11px;color:var(--muted);margin-top:8px;font-family:'JetBrains Mono',monospace">A confirmation link will be sent to the new address.</div>
+      <div id="settings-email-msg" style="font-size:12px;text-align:center;margin-top:8px;display:none"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Change Password</div>
+      <div class="form-group">
+        <div class="form-label">New Password</div>
+        <input class="form-input" id="set-pass" type="password" placeholder="New password (min. 6 chars)">
+      </div>
+      <div class="form-group">
+        <div class="form-label">Confirm Password</div>
+        <input class="form-input" id="set-pass2" type="password" placeholder="Repeat new password">
+      </div>
+      <button class="btn btn-ghost" onclick="changePassword()" style="width:100%;justify-content:center">Update Password</button>
+      <div id="settings-pass-msg" style="font-size:12px;text-align:center;margin-top:8px;display:none"></div>
+    </div>
+
+    <div class="card" style="border-color:rgba(224,85,85,0.2)">
+      <div class="card-title" style="color:var(--red)">Danger Zone</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6">Deleting your account is permanent. All your data will be erased.</div>
+      <button class="btn btn-danger" onclick="deleteAccount()" style="width:100%;justify-content:center">Delete My Account</button>
+    </div>
+
+  </div>
+</div>
+
 <!-- ══════════ ADMIN — USER MANAGEMENT ══════════ -->
 <div id="page-admin" class="page">
   <div class="page-hd">
@@ -1215,7 +1275,6 @@ hr.divider { border:none; border-top:1px solid var(--border); margin:20px 0; }
     <button class="btn btn-ghost" onclick="loadAdminUsers()">↻ Refresh</button>
   </div>
 
-  <!-- Pending -->
   <div class="card" style="margin-bottom:16px">
     <div class="card-title" style="display:flex;align-items:center;gap:8px">
       Pending Approval
@@ -1226,25 +1285,23 @@ hr.divider { border:none; border-top:1px solid var(--border); margin:20px 0; }
     </div>
   </div>
 
-  <!-- Approved -->
   <div class="card" style="margin-bottom:16px">
     <div class="card-title" style="display:flex;align-items:center;gap:8px">
       Approved Users
       <span id="admin-approved-count" class="badge badge-green">0</span>
     </div>
     <div id="admin-approved-list">
-      <div class="empty" style="padding:30px"><div class="empty-icon">✅</div><p>No approved users</p></div>
+      <div class="empty" style="padding:30px"><div class="empty-icon">✅</div><p>No approved users yet</p></div>
     </div>
   </div>
 
-  <!-- Rejected -->
   <div class="card">
     <div class="card-title" style="display:flex;align-items:center;gap:8px">
       Rejected
       <span id="admin-rejected-count" class="badge badge-red">0</span>
     </div>
     <div id="admin-rejected-list">
-      <div class="empty" style="padding:30px"><div class="empty-icon">❌</div><p>No rejected users</p></div>
+      <div class="empty" style="padding:30px"><div class="empty-icon">❌</div><p>None rejected</p></div>
     </div>
   </div>
 </div>
@@ -1390,20 +1447,32 @@ async function doLogout() {
 // ── Route user based on profile status ──
 async function handleUser(user) {
   CURRENT_USER = user;
+
   // Fetch profile
-  const { data: profile } = await SB.from('user_profiles')
+  let { data: profile } = await SB.from('user_profiles')
     .select('*').eq('id', user.id).single();
+
+  // If no profile exists (user registered before SQL trigger), create pending one
+  if (!profile) {
+    await SB.from('user_profiles').insert({
+      id: user.id,
+      full_name: user.user_metadata?.full_name || '',
+      approval_status: 'pending'
+    });
+    const { data: fresh } = await SB.from('user_profiles').select('*').eq('id', user.id).single();
+    profile = fresh;
+  }
+
   CURRENT_PROFILE = profile;
 
-  if (!profile || profile.approval_status === 'pending') {
-    // Show pending screen
+  if (profile.approval_status === 'pending') {
     document.getElementById('pending-email-show').textContent = user.email;
     showScreen('pending');
-    // Poll every 30s in case admin approves while waiting
+    // Poll every 20s — auto-enter when admin approves
     const poll = setInterval(async () => {
-      const { data: p } = await SB.from('user_profiles').select('status').eq('id', user.id).single();
+      const { data: p } = await SB.from('user_profiles').select('approval_status').eq('id', user.id).single();
       if (p?.approval_status === 'approved') { clearInterval(poll); enterApp(user, {...profile, ...p}); }
-    }, 30000);
+    }, 20000);
     return;
   }
 
@@ -1424,11 +1493,20 @@ async function handleUser(user) {
 function enterApp(user, profile) {
   CURRENT_USER = user; CURRENT_PROFILE = profile;
   showScreen('app');
-  // Update header
+  // Header
   const initials = (profile?.full_name||user.email||'U').substring(0,2).toUpperCase();
   document.getElementById('user-avatar-initials').textContent = initials;
   document.getElementById('user-email-display').textContent = user.email;
-  // Show admin panel if admin
+  // Settings page
+  document.getElementById('settings-avatar').textContent = initials;
+  document.getElementById('settings-name-display').textContent = profile?.full_name || user.email;
+  document.getElementById('settings-email-display').textContent = user.email;
+  document.getElementById('set-name').value = profile?.full_name || '';
+  const roleBadge = document.getElementById('settings-role-badge');
+  roleBadge.innerHTML = profile?.role === 'admin'
+    ? '<span class="badge badge-gold">Admin</span>'
+    : '<span class="badge badge-muted">Investor</span>';
+  // Show admin nav if admin
   if (profile?.role === 'admin') {
     document.getElementById('admin-nav-group').style.display = 'block';
     checkPendingCount();
@@ -1473,11 +1551,10 @@ async function loadAdminUsers() {
 
   const fmt = (u, actions) => `
     <div class="admin-user-row">
-      <div class="admin-avatar">${(u.full_name||u.id).substring(0,2).toUpperCase()}</div>
+      <div class="admin-avatar">${(u.full_name||'?').substring(0,2).toUpperCase()}</div>
       <div class="admin-info">
-        <div class="admin-name">${u.full_name||'—'}</div>
-        <div class="admin-email-text">${u.id}</div>
-        <div class="admin-date">Requested: ${new Date(u.created_at).toLocaleDateString()}</div>
+        <div class="admin-name">${u.full_name||'No name'}</div>
+        <div class="admin-date">Registered: ${new Date(u.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>
       </div>
       ${actions}
     </div>`;
@@ -1494,7 +1571,8 @@ async function loadAdminUsers() {
     ? approved.filter(u=>u.id!==CURRENT_USER.id).map(u=>fmt(u,`
         <div class="admin-actions">
           <button class="btn-reject" onclick="adminReject('${u.id}')">Revoke</button>
-        </div>`)).join('') || '<div class="empty" style="padding:20px"><p>Only you are approved</p></div>'
+        </div>`)).join('') ||
+      `<div class="empty" style="padding:20px"><p>Only you are approved</p></div>`
     : '<div class="empty" style="padding:20px"><p>No approved users</p></div>';
 
   document.getElementById('admin-rejected-list').innerHTML = rejected.length
@@ -1506,18 +1584,78 @@ async function loadAdminUsers() {
 }
 
 async function adminApprove(userId) {
-  await SB.from('user_profiles').update({
-    approval_status:'approved', approved_by:CURRENT_USER.id, approved_at:new Date().toISOString()
+  const { error } = await SB.from('user_profiles').update({
+    approval_status:'approved', approved_at:new Date().toISOString()
   }).eq('id', userId);
-  loadAdminUsers();
+  if (!error) loadAdminUsers();
 }
 
 async function adminReject(userId) {
-  const reason = prompt('Reason for rejection (optional):') || '';
-  await SB.from('user_profiles').update({
-    approval_status:'rejected', reject_reason:reason, rejected_at:new Date().toISOString()
+  if (!confirm('Reject this user? They will not be able to access the platform.')) return;
+  const { error } = await SB.from('user_profiles').update({
+    approval_status:'rejected'
   }).eq('id', userId);
-  loadAdminUsers();
+  if (!error) loadAdminUsers();
+}
+
+// ══════════════════════════════════════
+//  SETTINGS
+// ══════════════════════════════════════
+async function saveProfileName() {
+  const name = document.getElementById('set-name').value.trim();
+  const msg = document.getElementById('settings-profile-msg');
+  if (!name) return;
+  const { error } = await SB.from('user_profiles').update({ full_name: name }).eq('id', CURRENT_USER.id);
+  if (error) { msg.style.color='var(--red)'; msg.textContent='Error saving.'; }
+  else {
+    CURRENT_PROFILE.full_name = name;
+    const initials = name.substring(0,2).toUpperCase();
+    document.getElementById('user-avatar-initials').textContent = initials;
+    document.getElementById('settings-avatar').textContent = initials;
+    document.getElementById('settings-name-display').textContent = name;
+    msg.style.color='var(--green)'; msg.textContent='✓ Name updated.';
+  }
+  msg.style.display='block';
+  setTimeout(()=>msg.style.display='none', 3000);
+}
+
+async function changeEmail() {
+  const email = document.getElementById('set-email').value.trim();
+  const msg   = document.getElementById('settings-email-msg');
+  if (!email) return;
+  const { error } = await SB.auth.updateUser({ email });
+  if (error) { msg.style.color='var(--red)'; msg.textContent=error.message; }
+  else { msg.style.color='var(--green)'; msg.textContent='✓ Confirmation sent. Check your new email inbox.'; }
+  msg.style.display='block';
+  document.getElementById('set-email').value='';
+}
+
+async function changePassword() {
+  const p1  = document.getElementById('set-pass').value;
+  const p2  = document.getElementById('set-pass2').value;
+  const msg = document.getElementById('settings-pass-msg');
+  if (!p1||!p2) return;
+  if (p1 !== p2) { msg.style.color='var(--red)'; msg.textContent='Passwords do not match.'; msg.style.display='block'; return; }
+  if (p1.length < 6) { msg.style.color='var(--red)'; msg.textContent='Minimum 6 characters.'; msg.style.display='block'; return; }
+  const { error } = await SB.auth.updateUser({ password: p1 });
+  if (error) { msg.style.color='var(--red)'; msg.textContent=error.message; }
+  else { msg.style.color='var(--green)'; msg.textContent='✓ Password updated successfully.'; }
+  msg.style.display='block';
+  document.getElementById('set-pass').value='';
+  document.getElementById('set-pass2').value='';
+  setTimeout(()=>msg.style.display='none', 4000);
+}
+
+async function deleteAccount() {
+  const conf1 = confirm('Are you sure you want to delete your account? This is permanent.');
+  if (!conf1) return;
+  const conf2 = confirm('Last chance — all your properties, analysis, and contacts will be deleted forever.');
+  if (!conf2) return;
+  // Delete profile (cascades to all user data via FK)
+  await SB.from('user_profiles').delete().eq('id', CURRENT_USER.id);
+  await SB.auth.signOut();
+  alert('Your account has been deleted.');
+  location.reload();
 }
 
 // ══════════════════════════════════════
