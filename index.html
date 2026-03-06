@@ -1537,9 +1537,31 @@ async function checkPendingCount() {
 }
 
 async function loadAdminUsers() {
-  if (!CURRENT_PROFILE || CURRENT_PROFILE.role !== 'admin') return;
-  const { data: users } = await SB.from('user_profiles').select('*').order('created_at', {ascending:false});
-  if (!users) return;
+  if (!CURRENT_PROFILE || CURRENT_PROFILE.role !== 'admin') {
+    console.warn('loadAdminUsers: not admin', CURRENT_PROFILE);
+    return;
+  }
+
+  const pendingEl  = document.getElementById('admin-pending-list');
+  const approvedEl = document.getElementById('admin-approved-list');
+  const rejectedEl = document.getElementById('admin-rejected-list');
+  pendingEl.innerHTML  = '<div style="padding:20px;color:var(--muted);font-size:13px">Loading...</div>';
+  approvedEl.innerHTML = '<div style="padding:20px;color:var(--muted);font-size:13px">Loading...</div>';
+  rejectedEl.innerHTML = '';
+
+  const { data: users, error } = await SB.from('user_profiles').select('*').order('created_at', {ascending:false});
+
+  if (error) {
+    console.error('loadAdminUsers error:', error);
+    pendingEl.innerHTML = `<div style="padding:20px;color:var(--red);font-size:13px">⚠️ Error: ${error.message}<br><br>Run the RLS fix SQL in Supabase.</div>`;
+    approvedEl.innerHTML = '';
+    return;
+  }
+  if (!users || users.length === 0) {
+    pendingEl.innerHTML  = '<div class="empty" style="padding:20px"><p>No users found</p></div>';
+    approvedEl.innerHTML = '<div class="empty" style="padding:20px"><p>No users found</p></div>';
+    return;
+  }
   const pending  = users.filter(u=>u.approval_status==='pending');
   const approved = users.filter(u=>u.approval_status==='approved');
   const rejected = users.filter(u=>u.approval_status==='rejected');
