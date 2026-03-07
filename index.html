@@ -2284,7 +2284,7 @@ async function analyzeDeal() {
   try {
     const res = await fetch(N8N_ANALYZE, {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ address:addr, city, state:'GA', zip, asking_price:purchase, estimated_rehab:rehab, closing_costs:closing, holding_cost:holding, agent_fees:agent, estimated_rent:rent, comparables:comps, exit_strategies:[...SELECTED_EXITS] })
+      body: JSON.stringify({ address:addr, city, state:'GA', zip, asking_price:purchase, estimated_rehab:rehab, closing_costs:closing, holding_cost:holding, agent_fees:agent, estimated_rent:rent, comparables:comps, exit_strategies:[...SELECTED_EXITS], zillow_url: document.getElementById('f-zillow').value.trim(), user_id: CURRENT_USER?.id || null })
     });
     if (!res.ok) throw new Error('n8n '+res.status);
     result = await res.json();
