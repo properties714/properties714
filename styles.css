@@ -6,7 +6,7 @@
   --border: rgba(255,255,255,0.06);
   --border2: rgba(255,255,255,0.11);
   --text: #ece9e2;
-  --muted: rgba(236,233,226,0.42);
+  --muted: rgba(236,233,226,0.70);
   --gold: #d4a843;
   --gold2: #f0c96a;
   --gold3: #ffd97a;
@@ -137,7 +137,7 @@ header {
   font-size: 9px;
   letter-spacing: 2.5px;
   text-transform: uppercase;
-  color: rgba(236,233,226,0.2);
+  color: rgba(236,233,226,0.45);
   padding: 0 18px;
   margin-bottom: 6px;
 }
@@ -146,14 +146,14 @@ header {
   align-items: center;
   gap: 10px;
   padding: 10px 18px;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(236,233,226,0.82);
   cursor: pointer;
   transition: all 0.18s;
   border-left: 2px solid transparent;
   margin-bottom: 1px;
-  letter-spacing: 0.1px;
+  letter-spacing: 0.2px;
 }
 .nav-item:hover { color: var(--text); background: rgba(255,255,255,0.04); border-left-color: rgba(212,168,67,0.3); }
 .nav-item.active {
