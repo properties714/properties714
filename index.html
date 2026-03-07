@@ -1412,7 +1412,10 @@ hr.divider { border:none; border-top:1px solid var(--border); margin:20px 0; }
 // ══════════════════════════════════════
 const SUPABASE_URL  = 'https://euvbddxunitgiqduckwf.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1dmJkZHh1bml0Z2lxZHVja3dmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4MjMyMDQsImV4cCI6MjA4ODM5OTIwNH0.Fq3UwLA_VCPaoA7fShgT8nCk9xXw1sNENoZ_jZyz6Qs';
-const N8N = 'https://n8n.properties714.com/webhook/gpai-analyze-deal';
+const N8N_ANALYZE  = 'https://n8n.properties714.com/webhook/gpai-analyze-deal';
+const N8N_GET_DEAL = 'https://n8n.properties714.com/webhook/gpai-get-deal';
+const N8N_PIPELINE = 'https://n8n.properties714.com/webhook/gpai-pipeline';
+const N8N = N8N_ANALYZE; // backward compat
 
 // ── Init Supabase ──
 const { createClient } = supabase;
@@ -1697,8 +1700,14 @@ async function checkPendingCount() {
 }
 
 async function loadAdminUsers() {
+  // Refresh profile from DB to get latest role
+  if (CURRENT_USER) {
+    const { data: freshProfile } = await SB.from('user_profiles').select('*').eq('id', CURRENT_USER.id).single();
+    if (freshProfile) { CURRENT_PROFILE = freshProfile; }
+  }
   if (!CURRENT_PROFILE || CURRENT_PROFILE.role !== 'admin') {
     console.warn('loadAdminUsers: not admin', CURRENT_PROFILE);
+    document.getElementById('admin-pending-list').innerHTML = '<div style="padding:20px;color:var(--red);font-size:13px">⚠️ Your account does not have admin role.</div>';
     return;
   }
 
@@ -1846,17 +1855,33 @@ async function deleteAccount() {
 async function loadUserData() {
   if (!CURRENT_USER) return;
   try {
-    const [propsRes, analysisRes, contactsRes] = await Promise.all([
-      SB.from('properties').select('*').eq('user_id', CURRENT_USER.id).order('created_at', {ascending:false}),
-      SB.from('deal_analysis').select('*').eq('user_id', CURRENT_USER.id),
-      SB.from('contacts').select('*').eq('user_id', CURRENT_USER.id)
-    ]);
-    if (propsRes.data)    DB.properties = propsRes.data.map(p=>({...p, asking_price:p.asking_price||0}));
-    if (analysisRes.data) DB.analysis   = analysisRes.data;
-    if (contactsRes.data) DB.contacts   = contactsRes.data.map(c=>({...c, name:c.full_name}));
-    updateStats();
-    renderDashboard();
-  } catch(e) { console.warn('Supabase load error:', e); }
+    // Load pipeline data from n8n (includes properties + analysis + KPIs)
+    const pipelineRes = await fetch(N8N_PIPELINE, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user_id: CURRENT_USER.id }) });
+    if (pipelineRes.ok) {
+      const pdata = await pipelineRes.json();
+      if (pdata.all_properties) DB.properties = pdata.all_properties.map(p=>({...p, asking_price:parseFloat(p.asking_price)||0}));
+      if (pdata.all_properties) DB.analysis = pdata.all_properties.filter(p=>p.deal_score!=null).map(p=>({ property_id:p.id, arv:p.estimated_arv, total_investment:p.total_investment, estimated_profit:p.estimated_profit, roi:p.roi, deal_score:p.deal_score, recommendation:p.recommendation }));
+    } else { throw new Error('n8n pipeline failed'); }
+  } catch(e) {
+    // Fallback: load directly from Supabase
+    try {
+      const [propsRes, analysisRes, contactsRes] = await Promise.all([
+        SB.from('properties').select('*').eq('user_id', CURRENT_USER.id).order('created_at', {ascending:false}),
+        SB.from('deal_analysis').select('*').eq('user_id', CURRENT_USER.id),
+        SB.from('contacts').select('*').eq('user_id', CURRENT_USER.id)
+      ]);
+      if (propsRes.data)    DB.properties = propsRes.data.map(p=>({...p, asking_price:p.asking_price||0}));
+      if (analysisRes.data) DB.analysis   = analysisRes.data;
+      if (contactsRes.data) DB.contacts   = contactsRes.data.map(c=>({...c, name:c.full_name}));
+    } catch(e2) { console.warn('Supabase load error:', e2); }
+  }
+  // Always load contacts from Supabase
+  try {
+    const { data } = await SB.from('contacts').select('*').eq('user_id', CURRENT_USER.id);
+    if (data) DB.contacts = data.map(c=>({...c, name:c.name||''}));
+  } catch(e) {}
+  updateStats();
+  renderDashboard();
 }
 
 // ══════════════════════════════════════
