@@ -1,688 +1,240 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Properties714 — Investment Platform</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <link rel="stylesheet" href="styles.css">
-  <style>
-    /* ── FORCE HEADER VISIBILITY ── */
-    header { background: #0a0c18 !important; border-bottom: 2px solid #f5c842 !important; }
-    .logo { color: #ffffff !important; font-size: 16px !important; }
-    .logo-badge {
-      background: linear-gradient(135deg, #f5c842, #ffd966) !important;
-      color: #000 !important; font-weight: 900 !important;
-      padding: 4px 10px !important; border-radius: 5px !important;
-      box-shadow: 0 0 16px rgba(245,200,66,0.7) !important;
-      font-size: 10px !important; letter-spacing: 1.5px !important;
+//  DASHBOARD & PIPELINE
+// ══════════════════════════════════════
+function updateStats() {
+  document.getElementById('s-props').textContent = DB.properties.length;
+  if (DB.analysis.length) {
+    const avg = Math.round(DB.analysis.reduce((s,a)=>s+a.deal_score,0)/DB.analysis.length);
+    const profit = DB.analysis.reduce((s,a)=>s+(a.estimated_profit||0),0);
+    const good = DB.analysis.filter(a=>a.deal_score>=70).length;
+    document.getElementById('s-score').textContent = avg;
+    document.getElementById('s-profit').textContent = '$'+Math.round(profit).toLocaleString();
+    document.getElementById('s-good').textContent = good;
+  }
+}
+
+function renderDashboard() {
+  updateStats();
+  const recent = document.getElementById('db-recent');
+  if (!DB.properties.length) {
+    recent.innerHTML='<div class="empty" style="padding:30px"><div class="empty-icon">📋</div><h3>No deals yet</h3></div>';
+    document.getElementById('db-strats').innerHTML='<div class="empty" style="padding:30px"><div class="empty-icon">📊</div><h3>No data</h3></div>';
+    return;
+  }
+  const sorted = [...DB.properties].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,5);
+  recent.innerHTML = sorted.map(p=>{
+    const a = DB.analysis.find(x=>x.property_id===p.id);
+    const rec = a?a.recommendation:'Pending';
+    const bc = rec==='GOOD DEAL'?'badge-green':rec==='MARGINAL DEAL'?'badge-amber':rec==='REJECT'?'badge-red':'badge-muted';
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div><div style="font-size:13px;font-weight:600">${p.address}</div><div style="font-size:11px;color:var(--muted)">$${(p.asking_price||0).toLocaleString()} · ${p.strategy_candidate||'—'}</div></div>
+      <span class="badge ${bc}">${rec}</span>
+    </div>`;
+  }).join('');
+  const dist={fix_flip:0,rental:0,wholesale:0};
+  DB.properties.forEach(p=>{if(p.strategy_candidate)dist[p.strategy_candidate]=(dist[p.strategy_candidate]||0)+1;});
+  const total = DB.properties.length||1;
+  document.getElementById('db-strats').innerHTML = Object.entries(dist).map(([k,v])=>`
+    <div style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span>${k.replace('_',' ').replace(/\b\w/g,c=>c.toUpperCase())}</span><span style="font-family:'JetBrains Mono',monospace">${v}</span></div>
+      <div class="score-bar"><div class="score-fill" style="width:${Math.round(v/total*100)}%;background:var(--gold)"></div></div>
+    </div>`).join('');
+}
+
+function renderPipeline() {
+  const stages=[{id:'new',label:'New'},{id:'analyzing',label:'Analyzing'},{id:'offer_sent',label:'Offer Sent'},{id:'under_contract',label:'Under Contract'},{id:'closed',label:'Closed'},{id:'dead',label:'Dead'}];
+  document.getElementById('kanban-board').innerHTML = stages.map(st=>{
+    const props = DB.properties.filter(p=>p.status===st.id);
+    return `<div class="kanban-col">
+      <div class="kanban-hd">${st.label}<span class="kanban-count">${props.length}</span></div>
+      ${props.length ? props.map(p=>{
+        const a=DB.analysis.find(x=>x.property_id===p.id);
+        const score=a?a.deal_score:null;
+        const sc=score>=70?'var(--green)':score>=45?'var(--amber)':'var(--red)';
+        return `<div class="kanban-card">
+          <div class="kc-addr">${p.address}</div>
+          <div class="kc-price">$${(p.asking_price||0).toLocaleString()}</div>
+          ${score!==null?`<div style="margin-top:8px"><div class="score-wrap"><div class="score-bar"><div class="score-fill" style="width:${score}%;background:${sc}"></div></div><span class="score-num">${score}</span></div></div>`:''}
+        </div>`;
+      }).join('') : `<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px">Empty</div>`}
+    </div>`;
+  }).join('');
+}
+
+function renderProperties() {
+  document.getElementById('props-sub').textContent = DB.properties.length+' properties';
+  const tbody = document.getElementById('props-table');
+  if (!DB.properties.length) {
+    tbody.innerHTML='<tr><td colspan="8"><div class="empty"><div class="empty-icon">🏠</div><h3>No properties</h3><p>Analyze your first deal</p></div></td></tr>';
+    return;
+  }
+  const sc=(s)=>s>=70?'var(--green)':s>=45?'var(--amber)':'var(--red)';
+  const rb=(r)=>r==='GOOD DEAL'?'badge-green':r==='MARGINAL DEAL'?'badge-amber':'badge-red';
+  tbody.innerHTML = DB.properties.map(p=>{
+    const a=DB.analysis.find(x=>x.property_id===p.id);
+    const score=a?a.deal_score:'—';
+    const rec=a?a.recommendation:'—';
+    const arv=a?'$'+a.arv.toLocaleString():'—';
+    return `<tr>
+      <td style="font-weight:600">${p.address}<br><span style="font-size:11px;color:var(--muted)">${p.city||''} ${p.zip||''}</span></td>
+      <td style="font-family:'JetBrains Mono',monospace">$${(p.asking_price||0).toLocaleString()}</td>
+      <td style="font-family:'JetBrains Mono',monospace">${arv}</td>
+      <td><span class="badge badge-muted">${p.strategy_candidate||'—'}</span></td>
+      <td>${a?`<div class="score-wrap"><div class="score-bar"><div class="score-fill" style="width:${score}%;background:${sc(score)}"></div></div><span class="score-num">${score}</span></div>`:'—'}</td>
+      <td>${rec!=='—'?`<span class="badge ${rb(rec)}">${rec}</span>`:'—'}</td>
+      <td><span class="badge badge-muted">${p.status}</span></td>
+      <td><button class="btn btn-danger btn-sm" onclick="delProp(${p.id})">Remove</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function delProp(id) {
+  if(!confirm('Remove this property?'))return;
+  DB.properties=DB.properties.filter(p=>p.id!==id);
+  DB.analysis=DB.analysis.filter(a=>a.property_id!==id);
+  renderProperties(); updateStats();
+}
+
+// ── INIT ──
+renderScripts();
+renderDocs();
+</script>
+
+// ══════════════════════════════════════
+//  ZILLOW MARKET SEARCH
+// ══════════════════════════════════════
+async function searchZillow() {
+  const zip    = document.getElementById('zs-zip').value.trim();
+  const city   = document.getElementById('zs-city').value.trim();
+  const maxp   = document.getElementById('zs-maxprice').value;
+  const count  = parseInt(document.getElementById('zs-count').value)||10;
+  const btn    = document.getElementById('zs-btn');
+  const status = document.getElementById('zs-status');
+  const loading= document.getElementById('zs-loading');
+  const results= document.getElementById('zs-results');
+
+  if (!zip && !city) {
+    status.style.display='block'; status.style.color='var(--amber)';
+    status.textContent='⚠ Ingresa un ZIP code o ciudad para buscar'; return;
+  }
+
+  // Build Zillow search URL
+  let searchUrl = '';
+  if (zip) {
+    searchUrl = `https://www.zillow.com/homes/for_sale/${zip}_rb/`;
+  } else {
+    const citySlug = city.toLowerCase().replace(/\s+/g,'-');
+    searchUrl = `https://www.zillow.com/homes/${citySlug}-ga_rb/`;
+  }
+
+  btn.disabled = true; btn.textContent = '⏳ Buscando...';
+  status.style.display='none';
+  loading.style.display='block';
+  results.style.display='none';
+
+  try {
+    const res = await fetch(
+      `https://api.apify.com/v2/acts/maxcopell~zillow-scraper/run-sync-get-dataset-items?token=${APIFY_TOKEN}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          searchUrls: [{ url: searchUrl }],
+          maxItems: count
+        })
+      }
+    );
+
+    if (!res.ok) throw new Error('Apify error ' + res.status);
+    const data = await res.json();
+
+    loading.style.display='none';
+    btn.disabled=false; btn.textContent='🔍 Buscar';
+
+    // Filter by max price if set
+    let items = Array.isArray(data) ? data : [];
+    if (maxp) items = items.filter(p => (p.price||p.listPrice||0) <= parseInt(maxp));
+
+    if (!items.length) {
+      status.style.display='block'; status.style.color='var(--amber)';
+      status.textContent=`⚠ No se encontraron propiedades en ${zip||city}. Intenta con otro ZIP.`;
+      return;
     }
-    .header-status { color: #ffffff !important; font-weight: 700 !important; font-size: 12px !important; }
-    .user-email { color: #ffffff !important; font-weight: 600 !important; }
-    .user-logout {
-      color: #ff5c5c !important; border: 1px solid rgba(255,92,92,0.5) !important;
-      background: rgba(255,92,92,0.12) !important; font-weight: 700 !important;
-      padding: 5px 12px !important;
-    }
-    .btn-gold {
-      background: linear-gradient(135deg, #f5c842, #ffd966) !important;
-      color: #000 !important; font-weight: 800 !important;
-      box-shadow: 0 0 20px rgba(245,200,66,0.5) !important;
-      border: 1px solid #ffd84d !important;
-    }
-    .user-avatar { background: linear-gradient(135deg,#f5c842,#ffd966) !important; color: #000 !important; font-weight: 900 !important; }
-  </style>
-</head>
-<body>
-  <style>
-    /* ── FORCE HEADER VISIBILITY ── */
-    header { background: #0a0c18 !important; border-bottom: 2px solid #f5c842 !important; }
-    .logo { color: #ffffff !important; font-size: 16px !important; }
-    .logo-badge {
-      background: linear-gradient(135deg, #f5c842, #ffd966) !important;
-      color: #000 !important; font-weight: 900 !important;
-      padding: 4px 10px !important; border-radius: 5px !important;
-      box-shadow: 0 0 16px rgba(245,200,66,0.7) !important;
-      font-size: 10px !important; letter-spacing: 1.5px !important;
-    }
-    .header-status { color: #ffffff !important; font-weight: 700 !important; font-size: 12px !important; }
-    .user-email { color: #ffffff !important; font-weight: 600 !important; }
-    .user-logout {
-      color: #ff5c5c !important; border: 1px solid rgba(255,92,92,0.5) !important;
-      background: rgba(255,92,92,0.12) !important; font-weight: 700 !important;
-      padding: 5px 12px !important;
-    }
-    .btn-gold {
-      background: linear-gradient(135deg, #f5c842, #ffd966) !important;
-      color: #000 !important; font-weight: 800 !important;
-      box-shadow: 0 0 20px rgba(245,200,66,0.5) !important;
-      border: 1px solid #ffd84d !important;
-    }
-    .user-avatar { background: linear-gradient(135deg,#f5c842,#ffd966) !important; color: #000 !important; font-weight: 900 !important; }
-  </style>
-</head>
-<body>
 
-<!-- ══ AUTH SCREEN ══ -->
-<div id="auth-screen">
-  <div class="auth-box">
-    <div class="auth-logo">Properties<span>714</span></div>
-    <div class="auth-tagline">Investment Platform</div>
-    <div class="auth-tabs">
-      <div class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Sign In</div>
-      <div class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">Request Access</div>
-    </div>
-    <!-- LOGIN -->
-    <div id="form-login" class="auth-form">
-      <div class="auth-input-wrap">
-        <div class="auth-label">Email</div>
-        <input class="auth-input" id="login-email" type="email" placeholder="you@email.com">
+    renderZillowResults(items, zip||city);
+
+  } catch(e) {
+    loading.style.display='none';
+    btn.disabled=false; btn.textContent='🔍 Buscar';
+    status.style.display='block'; status.style.color='var(--red)';
+    status.textContent='❌ Error conectando con Apify. Verifica que n8n esté activo.';
+    console.error('Zillow search error:', e);
+  }
+}
+
+function renderZillowResults(items, location) {
+  const results = document.getElementById('zs-results');
+  const grid    = document.getElementById('zs-grid');
+  const label   = document.getElementById('zs-count-label');
+
+  label.textContent = `${items.length} propiedades encontradas en ${location}`;
+  results.style.display='block';
+
+  grid.innerHTML = items.map(p => {
+    const price    = p.price || p.listPrice || p.unformattedPrice || 0;
+    const addr     = p.address?.streetAddress || p.streetAddress || p.address || 'Sin dirección';
+    const cityStr  = `${p.address?.city||p.city||''}, ${p.address?.state||p.state||'GA'} ${p.address?.zipcode||p.zipcode||''}`;
+    const beds     = p.bedrooms || p.beds || '?';
+    const baths    = p.bathrooms || p.baths || '?';
+    const sqft     = p.livingArea || p.sqft || null;
+    const zest     = p.zestimate || null;
+    const imgUrl   = p.imgSrc || p.photos?.[0] || null;
+    const zpid     = p.zpid || '';
+    const zillowUrl= zpid ? `https://www.zillow.com/homes/${zpid}_zpid/` : `https://www.zillow.com/homes/for_sale/${addr.replace(/\s/g,'-')}/`;
+    const status   = p.statusType || p.homeStatus || 'FOR SALE';
+
+    const priceStr = price ? '$' + parseInt(price).toLocaleString() : 'Precio N/D';
+    const zestStr  = zest  ? `Zestimate: $${parseInt(zest).toLocaleString()}` : '';
+
+    return `
+    <div class="zl-card">
+      <div class="zl-img">
+        ${imgUrl
+          ? `<img src="${imgUrl}" alt="${addr}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span class="zl-img-fallback" style="display:none">🏠</span>`
+          : `<span class="zl-img-fallback">🏠</span>`
+        }
+        <span class="zl-status-badge">${status.replace('_',' ')}</span>
+        <span class="zl-price-badge">${priceStr}</span>
       </div>
-      <div class="auth-input-wrap">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div class="auth-label">Password</div>
-          <span onclick="showForgotPassword()" style="font-size:11px;color:var(--gold);cursor:pointer;font-family:'JetBrains Mono',monospace">Forgot password?</span>
+      <div class="zl-body">
+        <div class="zl-addr" title="${addr}">${addr}</div>
+        <div class="zl-city">${cityStr}</div>
+        <div class="zl-specs">
+          <span class="zl-spec">🛏 <strong>${beds}</strong> beds</span>
+          <span class="zl-spec">🚿 <strong>${baths}</strong> baths</span>
+          ${sqft ? `<span class="zl-spec">📐 <strong>${parseInt(sqft).toLocaleString()}</strong> sqft</span>` : ''}
         </div>
-        <input class="auth-input" id="login-pass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
-      </div>
-      <div class="auth-error" id="login-error"></div>
-      <button class="auth-btn" id="login-btn" onclick="doLogin()">Sign In →</button>
-    </div>
-
-    <!-- FORGOT PASSWORD -->
-    <div id="form-forgot" class="auth-form" style="display:none">
-      <div style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6">Enter your email and we'll send you a link to reset your password.</div>
-      <div class="auth-input-wrap">
-        <div class="auth-label">Email</div>
-        <input class="auth-input" id="forgot-email" type="email" placeholder="you@email.com">
-      </div>
-      <div class="auth-error" id="forgot-error"></div>
-      <div class="auth-success" id="forgot-success" style="display:none">✅ Email sent! Check your inbox and click the link to reset your password.</div>
-      <button class="auth-btn" id="forgot-btn" onclick="doForgotPassword()">Send Reset Link →</button>
-      <div onclick="showLogin()" style="text-align:center;margin-top:14px;font-size:12px;color:var(--muted);cursor:pointer">← Back to Sign In</div>
-    </div>
-
-    <!-- REGISTER -->
-    <div id="form-register" class="auth-form" style="display:none">
-      <div class="auth-input-wrap">
-        <div class="auth-label">Full Name</div>
-        <input class="auth-input" id="reg-name" type="text" placeholder="John Smith">
-      </div>
-      <div class="auth-input-wrap">
-        <div class="auth-label">Email</div>
-        <input class="auth-input" id="reg-email" type="email" placeholder="you@email.com">
-      </div>
-      <div class="auth-input-wrap">
-        <div class="auth-label">Password</div>
-        <input class="auth-input" id="reg-pass" type="password" placeholder="Min. 6 characters">
-      </div>
-      <div class="auth-error" id="reg-error"></div>
-      <div class="auth-success" id="reg-success">✅ Request received!<br>You'll get an email once your account is approved.</div>
-      <button class="auth-btn" id="reg-btn" onclick="doRegister()">Request Access →</button>
-    </div>
-  </div>
-</div>
-
-<!-- ══ PENDING SCREEN ══ -->
-<div id="pending-screen">
-  <div class="pending-box">
-    <div class="pending-icon">⏳</div>
-    <div class="pending-title">Access Pending</div>
-    <div class="pending-sub">Your account is waiting for admin approval.<br>You'll receive an email once it's approved.</div>
-    <div class="pending-email" id="pending-email-show"></div>
-    <button class="auth-btn" onclick="doLogout()" style="width:100%">Sign Out</button>
-  </div>
-</div>
-
-<!-- ══ MAIN APP (hidden until auth) ══ -->
-<div id="main-app" style="display:none">
-
-<header>
-  <div class="logo">
-    Properties<span class="logo-714">714</span>
-    <span class="logo-badge">PRO</span>
-  </div>
-  <div style="display:flex;align-items:center;gap:16px">
-    <div class="header-status">
-      <span class="pulse"></span>
-      System Online
-    </div>
-    <div class="user-menu" id="user-menu-wrap">
-      <div class="user-avatar" id="user-avatar-initials">?</div>
-      <div class="user-email" id="user-email-display"></div>
-      <button class="user-logout" onclick="doLogout()">Sign Out</button>
-    </div>
-  </div>
-</header>
-
-<div class="app">
-<!-- ══ SIDEBAR ══ -->
-<nav class="sidebar">
-  <div class="nav-group">
-    <div class="nav-group-label">Overview</div>
-    <div class="nav-item active" onclick="nav('dashboard',this)"><span class="nav-icon">▪</span>Dashboard</div>
-    <div class="nav-item" onclick="nav('pipeline',this)"><span class="nav-icon">⬡</span>Pipeline</div>
-  </div>
-  <div class="nav-group">
-    <div class="nav-group-label">Analysis</div>
-    <div class="nav-item" onclick="nav('analyzer',this)"><span class="nav-icon">⚡</span>Deal Analyzer</div>
-    <div class="nav-item" onclick="nav('repairs',this)"><span class="nav-icon">🔧</span>Repair Calc</div>
-    <div class="nav-item" onclick="nav('properties',this)"><span class="nav-icon">◻</span>Properties</div>
-  </div>
-  <div class="nav-group">
-    <div class="nav-group-label">Network</div>
-    <div class="nav-item" onclick="nav('crm',this)"><span class="nav-icon">👥</span>CRM</div>
-    <div class="nav-item" onclick="nav('lenders',this)"><span class="nav-icon">💰</span>Lenders</div>
-    <div class="nav-item" onclick="nav('listings',this)"><span class="nav-icon">🏠</span>Listings</div>
-  </div>
-  <div class="nav-group">
-    <div class="nav-group-label">Tools</div>
-    <div class="nav-item" onclick="nav('scripts',this)"><span class="nav-icon">📋</span>Scripts</div>
-    <div class="nav-item" onclick="nav('docs',this)"><span class="nav-icon">📄</span>Documents</div>
-    <div class="nav-item" onclick="nav('settings',this)"><span class="nav-icon">⚙️</span>Settings</div>
-  </div>
-  <div class="nav-group" id="admin-nav-group" style="display:none">
-    <div class="nav-group-label">Admin</div>
-    <div class="nav-item" id="admin-nav-item" onclick="nav('admin',this);loadAdminUsers()"><span class="nav-icon">🛡</span>Users <span id="pending-dot" class="notification-dot" style="display:none"></span></div>
-  </div>
-</nav>
-
-<main class="main">
-
-<!-- ══════════ DASHBOARD ══════════ -->
-<div id="page-dashboard" class="page active">
-  <div class="page-hd">
-    <div><div class="page-title"><span>Investment</span> Dashboard</div><div class="page-sub">Properties714 · Real-time overview</div></div>
-    <button class="btn btn-gold" onclick="nav('analyzer',document.querySelector('[onclick*=analyzer]'))">⚡ Analyze Deal</button>
-  </div>
-
-  <!-- STATS ROW -->
-  <div class="stats-row">
-    <div class="stat"><div class="stat-label">Properties</div><div class="stat-val" id="s-props">0</div><div class="stat-note">In database</div></div>
-    <div class="stat"><div class="stat-label">Avg Score</div><div class="stat-val" id="s-score">—</div><div class="stat-note">Deal quality</div></div>
-    <div class="stat"><div class="stat-label">Total Profit Est.</div><div class="stat-val" id="s-profit">$0</div><div class="stat-note">All deals</div></div>
-    <div class="stat"><div class="stat-label">Good Deals</div><div class="stat-val" id="s-good">0</div><div class="stat-note">Score ≥ 70</div></div>
-  </div>
-
-  <!-- ZILLOW MARKET SEARCH -->
-  <div class="card" style="margin-bottom:20px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-      <div>
-        <div class="card-title" style="margin-bottom:2px">🏘 Zillow Market Search</div>
-        <div style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace">Propiedades en venta en tiempo real</div>
-      </div>
-      <span class="badge badge-blue">LIVE</span>
-    </div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
-      <div style="flex:1;min-width:140px">
-        <div class="form-label" style="margin-bottom:6px">ZIP Code</div>
-        <input class="form-input" id="zs-zip" placeholder="30093" style="width:100%">
-      </div>
-      <div style="flex:1;min-width:140px">
-        <div class="form-label" style="margin-bottom:6px">Ciudad (opcional)</div>
-        <input class="form-input" id="zs-city" placeholder="Norcross" style="width:100%">
-      </div>
-      <div style="flex:0.8;min-width:120px">
-        <div class="form-label" style="margin-bottom:6px">Precio Máx</div>
-        <select class="form-input" id="zs-maxprice" style="width:100%">
-          <option value="">Sin límite</option>
-          <option value="150000">$150,000</option>
-          <option value="200000">$200,000</option>
-          <option value="250000" selected>$250,000</option>
-          <option value="300000">$300,000</option>
-          <option value="400000">$400,000</option>
-          <option value="500000">$500,000</option>
-        </select>
-      </div>
-      <div style="flex:0.6;min-width:100px">
-        <div class="form-label" style="margin-bottom:6px">Resultados</div>
-        <select class="form-input" id="zs-count" style="width:100%">
-          <option value="5">5</option>
-          <option value="10" selected>10</option>
-          <option value="20">20</option>
-        </select>
-      </div>
-      <button class="btn btn-gold" onclick="searchZillow()" id="zs-btn" style="height:42px;padding:0 20px;white-space:nowrap">
-        🔍 Buscar
-      </button>
-    </div>
-    <div id="zs-status" style="margin-top:10px;font-size:12px;color:var(--muted);display:none"></div>
-    <div id="zs-loading" style="display:none;margin-top:16px">
-      <div class="loading-bar"><div class="dots"><span></span><span></span><span></span></div>Buscando en Zillow — esto toma ~30 segundos...</div>
-    </div>
-    <div id="zs-results" style="margin-top:16px;display:none">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-        <div id="zs-count-label" style="font-size:12px;color:var(--muted)"></div>
-        <div style="font-size:10px;color:rgba(255,255,255,0.3);font-family:monospace">Datos de Zillow via Apify</div>
-      </div>
-      <div id="zs-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px"></div>
-    </div>
-  </div>
-
-  <!-- RECENT DEALS + STRATEGY MIX -->
-  <div class="grid-2">
-    <div class="card">
-      <div class="card-title">Recent Deals</div>
-      <div id="db-recent"><div class="empty"><div class="empty-icon">📋</div><h3>No deals yet</h3><p>Analyze your first property</p></div></div>
-    </div>
-    <div class="card">
-      <div class="card-title">Strategy Mix</div>
-      <div id="db-strats"><div class="empty"><div class="empty-icon">📊</div><h3>No data</h3><p>Add deals to see distribution</p></div></div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════ PIPELINE ══════════ -->
-<div id="page-pipeline" class="page">
-  <div class="page-hd">
-    <div><div class="page-title">Deal Pipeline</div><div class="page-sub">Track every property through your process</div></div>
-    <button class="btn btn-gold" onclick="nav('analyzer',document.querySelector('[onclick*=analyzer]'))">+ Add Property</button>
-  </div>
-  <div class="kanban" id="kanban-board"></div>
-</div>
-
-<!-- ══════════ DEAL ANALYZER ══════════ -->
-<div id="page-analyzer" class="page">
-  <div class="page-hd">
-    <div><div class="page-title">Deal Analyzer</div><div class="page-sub">AI-powered · Saves to Supabase automatically</div></div>
-  </div>
-  <div class="grid-2">
-    <div>
-      <div class="card" style="margin-bottom:14px">
-        <div class="card-title">Property Info</div>
-        <div class="form-group"><div class="form-label">Address</div><input class="form-input" id="f-addr" placeholder="123 Peachtree St NE, Atlanta"></div>
-        <div class="grid-2">
-          <div class="form-group"><div class="form-label">City</div><input class="form-input" id="f-city" placeholder="Atlanta"></div>
-          <div class="form-group"><div class="form-label">ZIP</div><input class="form-input" id="f-zip" placeholder="30309"></div>
-        </div>
-        <hr class="divider">
-        <div class="card-title" style="font-size:13px;margin-bottom:14px">Financial Inputs</div>
-        <div class="grid-2">
-          <div class="form-group"><div class="form-label">Asking Price ($) <span id="ask-zillow-badge" style="display:none;font-size:9px;background:rgba(0,106,255,0.15);color:#4d9fff;border:1px solid rgba(0,106,255,0.3);padding:2px 7px;border-radius:10px;margin-left:6px">📍 de Zillow</span></div><input class="form-input" id="f-ask" type="number" placeholder="210000"></div>
-          <div class="form-group"><div class="form-label">Rehab Est. ($)</div><input class="form-input" id="f-rehab" type="number" placeholder="60000"></div>
-        </div>
-        <div class="grid-2">
-          <div class="form-group"><div class="form-label">Closing Costs ($)</div><input class="form-input" id="f-close" type="number" placeholder="8000"></div>
-          <div class="form-group"><div class="form-label">Holding Costs ($)</div><input class="form-input" id="f-hold" type="number" placeholder="6000"></div>
-        </div>
-        <div class="grid-2">
-          <div class="form-group"><div class="form-label">Agent Fees (%)</div><div style="display:flex;align-items:center;gap:6px"><input class="form-input" id="f-agent" type="number" placeholder="3.0" step="0.5" min="0" max="10" style="flex:1"><span style="color:var(--muted);font-size:13px;white-space:nowrap">% del ARV</span></div></div>
-          <div class="form-group"><div class="form-label">Monthly Rent Est. ($)</div><input class="form-input" id="f-rent" type="number" placeholder="2200"></div>
+        ${zestStr ? `<div class="zl-zestimate">🔵 ${zestStr}</div>` : ''}
+        <div class="zl-actions">
+          <button class="zl-btn-analyze" onclick="preloadAnalyzer('${addr.replace(/'/g,"\\'")}','${cityStr.split(',')[0]}','${p.address?.zipcode||p.zipcode||''}',${price},'${zillowUrl}')">
+            ⚡ Analizar Deal
+          </button>
+          <a class="zl-btn-zillow" href="${zillowUrl}" target="_blank">🔗</a>
         </div>
       </div>
-      <!-- Zillow Link -->
-      <div class="card" style="margin-bottom:14px">
-        <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
-          <span>Zillow Link <span style="font-size:11px;color:var(--muted);font-weight:400">(opcional — auto-rellena comps)</span></span>
-          <span class="zillow-badge">🔵 Zillow</span>
-        </div>
-        <div style="display:flex;gap:8px">
-          <input class="form-input" id="f-zillow" placeholder="https://www.zillow.com/homedetails/..." style="flex:1;font-size:12px">
-          <button class="btn btn-ghost btn-sm" onclick="parseZillowUrl()" style="white-space:nowrap;flex-shrink:0">→ Cargar</button>
-        </div>
-        <div id="zillow-status" style="font-size:11px;color:var(--muted);margin-top:6px;display:none"></div>
-      </div>
+    </div>`;
+  }).join('');
+}
 
-      <!-- Comparables -->
-      <div class="card" style="margin-bottom:14px">
-        <div class="card-title">Comparables <span style="font-size:11px;color:var(--muted);font-weight:400">(para ARV)</span></div>
-        <div id="comp-rows"></div>
-        <button class="btn btn-ghost btn-sm" onclick="addComp()" style="width:100%;justify-content:center;margin-top:8px">+ Agregar Comparable</button>
-      </div>
-
-      <!-- Exit Strategy Selector -->
-      <div class="card" style="margin-bottom:14px">
-        <div class="card-title">Estrategias de Salida <span style="font-size:11px;color:var(--muted);font-weight:400">Selecciona las que quieres analizar</span></div>
-        <div class="exit-grid">
-          <div class="exit-card selected" id="exit-fix_flip" onclick="toggleExit('fix_flip')">
-            <div class="exit-icon">🔨</div>
-            <div class="exit-name">Fix &amp; Flip</div>
-            <div class="exit-desc">Compra, renueva y vende</div>
-          </div>
-          <div class="exit-card selected" id="exit-wholesale" onclick="toggleExit('wholesale')">
-            <div class="exit-icon">⚡</div>
-            <div class="exit-name">Wholesale</div>
-            <div class="exit-desc">Asigna el contrato</div>
-          </div>
-          <div class="exit-card selected" id="exit-rental" onclick="toggleExit('rental')">
-            <div class="exit-icon">🏘</div>
-            <div class="exit-name">Renta</div>
-            <div class="exit-desc">Flujo mensual</div>
-          </div>
-          <div class="exit-card" id="exit-brrrr" onclick="toggleExit('brrrr')">
-            <div class="exit-icon">🔄</div>
-            <div class="exit-name">BRRRR</div>
-            <div class="exit-desc">Buy Rehab Rent Refi Repeat</div>
-          </div>
-          <div class="exit-card" id="exit-airbnb" onclick="toggleExit('airbnb')">
-            <div class="exit-icon">🏖</div>
-            <div class="exit-name">Airbnb</div>
-            <div class="exit-desc">Renta corto plazo</div>
-          </div>
-          <div class="exit-card" id="exit-subject_to" onclick="toggleExit('subject_to')">
-            <div class="exit-icon">📋</div>
-            <div class="exit-name">Subject-To</div>
-            <div class="exit-desc">Toma la hipoteca</div>
-          </div>
-          <div class="exit-card" id="exit-seller_finance" onclick="toggleExit('seller_finance')">
-            <div class="exit-icon">🤝</div>
-            <div class="exit-name">Seller Finance</div>
-            <div class="exit-desc">Vendedor financia</div>
-          </div>
-        </div>
-        <div id="exit-warning" style="font-size:11px;color:var(--amber);margin-top:8px;display:none">⚠ Selecciona al menos una estrategia</div>
-      </div>
-
-      <button class="btn btn-gold" onclick="analyzeDeal()" style="width:100%;justify-content:center;padding:13px;font-size:14px">⚡ Analizar Trato</button>
-    </div>
-    <div>
-      <div id="result-placeholder" class="card" style="height:300px;display:flex;align-items:center;justify-content:center">
-        <div class="empty"><div class="empty-icon">🎯</div><h3>Ready to analyze</h3><p>Fill in the form and click Analyze</p></div>
-      </div>
-      <div id="result-loading" style="display:none"><div class="loading-bar"><div class="dots"><span></span><span></span><span></span></div>Analizando con IA · Calculando estrategias...</div></div>
-      <div id="result-output" style="display:none"></div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════ REPAIR CALCULATOR ══════════ -->
-<div id="page-repairs" class="page">
-  <div class="page-hd">
-    <div><div class="page-title">Repair Calculator</div><div class="page-sub">Room-by-room rehab estimator</div></div>
-    <div style="display:flex;gap:10px;align-items:center">
-      <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted)">Total:</div>
-      <div style="font-size:22px;font-weight:800;color:var(--gold)" id="repair-total-hd">$0</div>
-    </div>
-  </div>
-
-  <div class="room-grid" id="room-selector"></div>
-
-  <div class="card">
-    <div class="card-title" id="active-room-title">Select a room above</div>
-    <div id="repair-items-list">
-      <div class="empty" style="padding:30px"><div class="empty-icon">🏠</div><p>Click a room to see repair items</p></div>
-    </div>
-    <div class="repair-total" id="repair-total-bar" style="display:none">
-      <div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Total Repair Estimate</div>
-        <div style="font-size:24px;font-weight:800;color:var(--gold)" id="repair-grand-total">$0</div>
-      </div>
-      <button class="btn btn-ghost btn-sm" onclick="exportRepairs()">Export Report</button>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════ PROPERTIES ══════════ -->
-<div id="page-properties" class="page">
-  <div class="page-hd">
-    <div><div class="page-title">Properties</div><div class="page-sub" id="props-sub">0 properties</div></div>
-    <button class="btn btn-gold" onclick="nav('analyzer',document.querySelector('[onclick*=analyzer]'))">+ Add Property</button>
-  </div>
-  <div class="table-wrap">
-    <table>
-      <thead><tr><th>Address</th><th>Asking</th><th>ARV</th><th>Strategy</th><th>Score</th><th>Recommendation</th><th>Status</th><th></th></tr></thead>
-      <tbody id="props-table"><tr><td colspan="8"><div class="empty"><div class="empty-icon">🏠</div><h3>No properties</h3><p>Analyze your first deal</p></div></td></tr></tbody>
-    </table>
-  </div>
-</div>
-
-<!-- ══════════ CRM ══════════ -->
-<div id="page-crm" class="page">
-  <div class="page-hd">
-    <div><div class="page-title">CRM</div><div class="page-sub">Buyers, sellers & contacts</div></div>
-    <button class="btn btn-gold" onclick="openContactModal()">+ Add Contact</button>
-  </div>
-  <div class="crm-tabs">
-    <div class="crm-tab active" onclick="filterCRM('all',this)">All</div>
-    <div class="crm-tab" onclick="filterCRM('buyer',this)">Buyers</div>
-    <div class="crm-tab" onclick="filterCRM('seller',this)">Sellers</div>
-    <div class="crm-tab" onclick="filterCRM('lender',this)">Lenders</div>
-  </div>
-  <div id="crm-list">
-    <div class="empty"><div class="empty-icon">👥</div><h3>No contacts yet</h3><p>Add buyers, sellers and lenders</p></div>
-  </div>
-</div>
-
-<!-- ══════════ LENDERS ══════════ -->
-<div id="page-lenders" class="page">
-  <div class="page-hd">
-    <div><div class="page-title">Private Lenders</div><div class="page-sub">Fund your deals without using your own money</div></div>
-    <button class="btn btn-gold" onclick="openLenderModal()">+ Add Lender</button>
-  </div>
-  <div class="grid-3" id="lenders-grid">
-    <!-- seeded lenders -->
-  </div>
-</div>
-
-<!-- ══════════ LISTINGS ══════════ -->
-<div id="page-listings" class="page">
-  <div class="page-hd">
-    <div><div class="page-title">Property Listings</div><div class="page-sub">Publish deals to your buyer network</div></div>
-    <button class="btn btn-gold" onclick="openListingModal()">+ Publish Listing</button>
-  </div>
-  <div class="grid-3" id="listings-grid">
-    <div class="empty" style="grid-column:1/-1"><div class="empty-icon">🏘</div><h3>No listings yet</h3><p>Publish a property to your buyer network</p></div>
-  </div>
-</div>
-
-<!-- ══════════ SCRIPTS ══════════ -->
-<div id="page-scripts" class="page">
-  <div class="page-hd">
-    <div><div class="page-title">Negotiation Scripts</div><div class="page-sub">Proven scripts for every situation</div></div>
-  </div>
-  <div id="scripts-list"></div>
-</div>
-
-<!-- ══════════ DOCUMENTS ══════════ -->
-<div id="page-docs" class="page">
-  <div class="page-hd">
-    <div><div class="page-title">Documents & Templates</div><div class="page-sub">Legal docs, email templates & credibility kit</div></div>
-  </div>
-  <div class="grid-2" id="docs-grid"></div>
-</div>
-
-<!-- ══════════ SETTINGS ══════════ -->
-<div id="page-settings" class="page">
-  <div class="page-hd">
-    <div><div class="page-title">Account Settings</div><div class="page-sub">Manage your account</div></div>
-  </div>
-  <div style="max-width:520px;display:flex;flex-direction:column;gap:16px">
-
-    <div class="card">
-      <div class="card-title">Profile</div>
-      <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
-        <div style="width:52px;height:52px;background:linear-gradient(135deg,var(--gold),var(--gold2));border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#000" id="settings-avatar">?</div>
-        <div>
-          <div style="font-size:15px;font-weight:700" id="settings-name-display">—</div>
-          <div style="font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--muted)" id="settings-email-display">—</div>
-          <div style="margin-top:4px" id="settings-role-badge"></div>
-        </div>
-      </div>
-      <div class="form-group">
-        <div class="form-label">Full Name</div>
-        <input class="form-input" id="set-name" placeholder="Your name">
-      </div>
-      <button class="btn btn-ghost" onclick="saveProfileName()" style="width:100%;justify-content:center">Save Name</button>
-      <div id="settings-profile-msg" style="font-size:12px;color:var(--green);text-align:center;margin-top:8px;display:none"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">Change Email</div>
-      <div class="form-group">
-        <div class="form-label">New Email Address</div>
-        <input class="form-input" id="set-email" type="email" placeholder="new@email.com">
-      </div>
-      <button class="btn btn-ghost" onclick="changeEmail()" style="width:100%;justify-content:center">Update Email</button>
-      <div style="font-size:11px;color:var(--muted);margin-top:8px;font-family:'JetBrains Mono',monospace">A confirmation link will be sent to the new address.</div>
-      <div id="settings-email-msg" style="font-size:12px;text-align:center;margin-top:8px;display:none"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">Change Password</div>
-      <div class="form-group">
-        <div class="form-label">New Password</div>
-        <input class="form-input" id="set-pass" type="password" placeholder="New password (min. 6 chars)">
-      </div>
-      <div class="form-group">
-        <div class="form-label">Confirm Password</div>
-        <input class="form-input" id="set-pass2" type="password" placeholder="Repeat new password">
-      </div>
-      <button class="btn btn-ghost" onclick="changePassword()" style="width:100%;justify-content:center">Update Password</button>
-      <div id="settings-pass-msg" style="font-size:12px;text-align:center;margin-top:8px;display:none"></div>
-    </div>
-
-    <div class="card" style="border-color:rgba(224,85,85,0.2)">
-      <div class="card-title" style="color:var(--red)">Danger Zone</div>
-      <div style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6">Deleting your account is permanent. All your data will be erased.</div>
-      <button class="btn btn-danger" onclick="deleteAccount()" style="width:100%;justify-content:center">Delete My Account</button>
-    </div>
-
-  </div>
-</div>
-
-<!-- ══════════ ADMIN — USER MANAGEMENT ══════════ -->
-<div id="page-admin" class="page">
-  <div class="page-hd">
-    <div>
-      <div class="page-title">User Management</div>
-      <div class="page-sub">Manage all registered users</div>
-    </div>
-    <button class="btn btn-ghost" onclick="loadAdminUsers()">↻ Refresh</button>
-  </div>
-
-  <!-- Stats row -->
-  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">
-    <div class="card" style="padding:16px;text-align:center">
-      <div style="font-size:24px;font-weight:800;color:var(--gold)" id="admin-total-count">0</div>
-      <div style="font-size:11px;color:var(--muted);margin-top:4px">TOTAL USERS</div>
-    </div>
-    <div class="card" style="padding:16px;text-align:center">
-      <div style="font-size:24px;font-weight:800;color:var(--amber)" id="admin-pending-count">0</div>
-      <div style="font-size:11px;color:var(--muted);margin-top:4px">PENDING</div>
-    </div>
-    <div class="card" style="padding:16px;text-align:center">
-      <div style="font-size:24px;font-weight:800;color:var(--green)" id="admin-approved-count">0</div>
-      <div style="font-size:11px;color:var(--muted);margin-top:4px">APPROVED</div>
-    </div>
-  </div>
-
-  <!-- Pending -->
-  <div class="card" style="margin-bottom:16px">
-    <div class="card-title" style="display:flex;align-items:center;gap:8px">
-      ⏳ Pending Approval
-    </div>
-    <div id="admin-pending-list">
-      <div class="empty" style="padding:20px"><p>No pending requests</p></div>
-    </div>
-  </div>
-
-  <!-- All users table -->
-  <div class="card">
-    <div class="card-title">All Registered Users</div>
-    <div id="admin-approved-list">
-      <div class="empty" style="padding:20px"><p>No users found</p></div>
-    </div>
-  </div>
-
-  <!-- Hidden rejected section kept for compatibility -->
-  <div id="admin-rejected-list" style="display:none"></div>
-  <div id="admin-rejected-count" style="display:none">0</div>
-</div>
-
-</main>
-</div>
-
-<!-- ══ RESET PASSWORD MODAL ══ -->
-<div id="reset-password-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:none;align-items:center;justify-content:center">
-  <div style="background:var(--surface);border:1px solid rgba(212,168,67,0.3);border-radius:16px;padding:36px;width:100%;max-width:400px;margin:20px">
-    <div style="font-size:20px;font-weight:800;font-family:'Unbounded',sans-serif;margin-bottom:6px">New Password</div>
-    <div style="font-size:13px;color:var(--muted);margin-bottom:24px">Enter your new password below.</div>
-    <div class="form-group">
-      <div class="form-label">New Password</div>
-      <input class="form-input" id="reset-pass1" type="password" placeholder="Min. 6 characters">
-    </div>
-    <div class="form-group">
-      <div class="form-label">Confirm Password</div>
-      <input class="form-input" id="reset-pass2" type="password" placeholder="Repeat password">
-    </div>
-    <div id="reset-error" style="color:var(--red);font-size:12px;margin-bottom:12px;display:none"></div>
-    <div id="reset-success" style="color:var(--green);font-size:12px;margin-bottom:12px;display:none">✅ Password updated! Redirecting...</div>
-    <button class="auth-btn" id="reset-btn" onclick="doResetPassword()" style="width:100%">Update Password →</button>
-  </div>
-</div>
-
-<!-- ══ MODALS ══ -->
-<div class="modal-overlay" id="modal-contact">
-  <div class="modal">
-    <div class="modal-title">Add Contact <span class="modal-close" onclick="closeModal('modal-contact')">×</span></div>
-    <div class="form-group"><div class="form-label">Full Name</div><input class="form-input" id="cm-name" placeholder="John Smith"></div>
-    <div class="form-group"><div class="form-label">Type</div>
-      <select class="form-input" id="cm-type">
-        <option value="buyer">Cash Buyer</option>
-        <option value="seller">Motivated Seller</option>
-        <option value="lender">Private Lender</option>
-        <option value="agent">Agent / Broker</option>
-      </select>
-    </div>
-    <div class="grid-2">
-      <div class="form-group"><div class="form-label">Phone</div><input class="form-input" id="cm-phone" placeholder="(404) 555-0100"></div>
-      <div class="form-group"><div class="form-label">Email</div><input class="form-input" id="cm-email" placeholder="john@email.com"></div>
-    </div>
-    <div class="form-group"><div class="form-label">Notes</div><textarea class="form-input" id="cm-notes" placeholder="Buys in Atlanta metro, cash, closes fast..."></textarea></div>
-    <button class="btn btn-gold" onclick="saveContact()" style="width:100%;justify-content:center">Save Contact</button>
-  </div>
-</div>
-
-<div class="modal-overlay" id="modal-lender">
-  <div class="modal">
-    <div class="modal-title">Add Lender <span class="modal-close" onclick="closeModal('modal-lender')">×</span></div>
-    <div class="form-group"><div class="form-label">Name / Company</div><input class="form-input" id="lm-name" placeholder="ABC Private Lending"></div>
-    <div class="grid-2">
-      <div class="form-group"><div class="form-label">Rate (%)</div><input class="form-input" id="lm-rate" type="number" placeholder="10"></div>
-      <div class="form-group"><div class="form-label">Max Loan ($)</div><input class="form-input" id="lm-max" type="number" placeholder="500000"></div>
-    </div>
-    <div class="form-group"><div class="form-label">Loan Types</div><input class="form-input" id="lm-types" placeholder="Fix & Flip, Rental, Bridge"></div>
-    <div class="form-group"><div class="form-label">Contact</div><input class="form-input" id="lm-contact" placeholder="email or phone"></div>
-    <button class="btn btn-gold" onclick="saveLender()" style="width:100%;justify-content:center">Save Lender</button>
-  </div>
-</div>
-
-<div class="modal-overlay" id="modal-listing">
-  <div class="modal">
-    <div class="modal-title">Publish Listing <span class="modal-close" onclick="closeModal('modal-listing')">×</span></div>
-    <div class="form-group"><div class="form-label">Address</div><input class="form-input" id="lim-addr" placeholder="123 Main St, Atlanta GA"></div>
-    <div class="grid-2">
-      <div class="form-group"><div class="form-label">Asking Price ($)</div><input class="form-input" id="lim-price" type="number" placeholder="185000"></div>
-      <div class="form-group"><div class="form-label">ARV ($)</div><input class="form-input" id="lim-arv" type="number" placeholder="300000"></div>
-    </div>
-    <div class="grid-2">
-      <div class="form-group"><div class="form-label">Rehab Est. ($)</div><input class="form-input" id="lim-rehab" type="number" placeholder="45000"></div>
-      <div class="form-group"><div class="form-label">Strategy</div>
-        <select class="form-input" id="lim-strat">
-          <option value="wholesale">Wholesale</option>
-          <option value="fix_flip">Fix & Flip</option>
-          <option value="rental">Rental</option>
-        </select>
-      </div>
-    </div>
-    <div class="form-group"><div class="form-label">Description</div><textarea class="form-input" id="lim-desc" placeholder="3/2, needs full rehab, great neighborhood..."></textarea></div>
-    <button class="btn btn-gold" onclick="saveListing()" style="width:100%;justify-content:center">Publish to Network</button>
-  </div>
-</div><!-- end modal-listing -->
-
-</div><!-- end #main-app -->
-
-
-<script src="config.js"></script>
-<script src="data.js"></script>
-<script src="auth.js"></script>
-<script src="admin.js"></script>
-<script src="nav.js"></script>
-<script src="analyzer.js"></script>
-<script src="repairs.js"></script>
-<script src="crm.js"></script>
-<script src="dashboard.js"></script>
-</body>
-</html>
+function preloadAnalyzer(addr, city, zip, price, zillowUrl) {
+  // Pre-fill the analyzer form and navigate to it
+  nav('analyzer', document.querySelector('[onclick*=analyzer]'));
+  setTimeout(() => {
+    if (addr) document.getElementById('f-addr').value = addr;
+    if (city) document.getElementById('f-city').value = city;
+    if (zip)  document.getElementById('f-zip').value  = zip;
+    if (price) document.getElementById('f-ask').value = price;
+    if (zillowUrl) document.getElementById('f-zillow').value = zillowUrl;
+    // Scroll to form
+    document.getElementById('f-addr').scrollIntoView({ behavior:'smooth', block:'center' });
+  }, 200);
+}
