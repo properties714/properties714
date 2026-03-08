@@ -220,8 +220,9 @@ async function analyzeDeal() {
   const rehab = parseFloat(document.getElementById('f-rehab').value)||0;
   const closing = parseFloat(document.getElementById('f-close').value)||8000;
   const holding = parseFloat(document.getElementById('f-hold').value)||6000;
-  const agent = parseFloat(document.getElementById('f-agent').value)||10000;
+  const agentRaw = parseFloat(document.getElementById('f-agent').value)||3.0;
   const rent = parseFloat(document.getElementById('f-rent').value)||0;
+  const agent = agentRaw < 20 ? Math.round((purchase||200000) * (agentRaw/100)) : agentRaw;
   const city = document.getElementById('f-city').value.trim();
   const zip = document.getElementById('f-zip').value.trim();
   const comps = getComps();
@@ -243,6 +244,14 @@ async function analyzeDeal() {
   }
 
   const a = result.analysis||{};
+  const strats = result.strategies||{};
+  const ff  = strats.fix_flip    || {};
+  const ws  = strats.wholesale   || {};
+  const ltr = strats.rental      || {};
+  const br  = strats.brrrr       || {};
+  const str = strats.airbnb      || {};
+  const sub = strats.subject_to  || {};
+  const sf  = strats.seller_finance || {};
   const isLocal = result.status==='local';
   const rec = a.recommendation||'REJECT';
   const score = a.deal_score||0;
