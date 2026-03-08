@@ -98,3 +98,143 @@ function delProp(id) {
 renderScripts();
 renderDocs();
 </script>
+
+// ══════════════════════════════════════
+//  ZILLOW MARKET SEARCH
+// ══════════════════════════════════════
+async function searchZillow() {
+  const zip    = document.getElementById('zs-zip').value.trim();
+  const city   = document.getElementById('zs-city').value.trim();
+  const maxp   = document.getElementById('zs-maxprice').value;
+  const count  = parseInt(document.getElementById('zs-count').value)||10;
+  const btn    = document.getElementById('zs-btn');
+  const status = document.getElementById('zs-status');
+  const loading= document.getElementById('zs-loading');
+  const results= document.getElementById('zs-results');
+
+  if (!zip && !city) {
+    status.style.display='block'; status.style.color='var(--amber)';
+    status.textContent='⚠ Ingresa un ZIP code o ciudad para buscar'; return;
+  }
+
+  // Build Zillow search URL
+  let searchUrl = '';
+  if (zip) {
+    searchUrl = `https://www.zillow.com/homes/for_sale/${zip}_rb/`;
+  } else {
+    const citySlug = city.toLowerCase().replace(/\s+/g,'-');
+    searchUrl = `https://www.zillow.com/homes/${citySlug}-ga_rb/`;
+  }
+
+  btn.disabled = true; btn.textContent = '⏳ Buscando...';
+  status.style.display='none';
+  loading.style.display='block';
+  results.style.display='none';
+
+  try {
+    const res = await fetch(
+      `https://api.apify.com/v2/acts/maxcopell~zillow-scraper/run-sync-get-dataset-items?token=${APIFY_TOKEN}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          searchUrls: [{ url: searchUrl }],
+          maxItems: count
+        })
+      }
+    );
+
+    if (!res.ok) throw new Error('Apify error ' + res.status);
+    const data = await res.json();
+
+    loading.style.display='none';
+    btn.disabled=false; btn.textContent='🔍 Buscar';
+
+    // Filter by max price if set
+    let items = Array.isArray(data) ? data : [];
+    if (maxp) items = items.filter(p => (p.price||p.listPrice||0) <= parseInt(maxp));
+
+    if (!items.length) {
+      status.style.display='block'; status.style.color='var(--amber)';
+      status.textContent=`⚠ No se encontraron propiedades en ${zip||city}. Intenta con otro ZIP.`;
+      return;
+    }
+
+    renderZillowResults(items, zip||city);
+
+  } catch(e) {
+    loading.style.display='none';
+    btn.disabled=false; btn.textContent='🔍 Buscar';
+    status.style.display='block'; status.style.color='var(--red)';
+    status.textContent='❌ Error conectando con Apify. Verifica que n8n esté activo.';
+    console.error('Zillow search error:', e);
+  }
+}
+
+function renderZillowResults(items, location) {
+  const results = document.getElementById('zs-results');
+  const grid    = document.getElementById('zs-grid');
+  const label   = document.getElementById('zs-count-label');
+
+  label.textContent = `${items.length} propiedades encontradas en ${location}`;
+  results.style.display='block';
+
+  grid.innerHTML = items.map(p => {
+    const price    = p.price || p.listPrice || p.unformattedPrice || 0;
+    const addr     = p.address?.streetAddress || p.streetAddress || p.address || 'Sin dirección';
+    const cityStr  = `${p.address?.city||p.city||''}, ${p.address?.state||p.state||'GA'} ${p.address?.zipcode||p.zipcode||''}`;
+    const beds     = p.bedrooms || p.beds || '?';
+    const baths    = p.bathrooms || p.baths || '?';
+    const sqft     = p.livingArea || p.sqft || null;
+    const zest     = p.zestimate || null;
+    const imgUrl   = p.imgSrc || p.photos?.[0] || null;
+    const zpid     = p.zpid || '';
+    const zillowUrl= zpid ? `https://www.zillow.com/homes/${zpid}_zpid/` : `https://www.zillow.com/homes/for_sale/${addr.replace(/\s/g,'-')}/`;
+    const status   = p.statusType || p.homeStatus || 'FOR SALE';
+
+    const priceStr = price ? '$' + parseInt(price).toLocaleString() : 'Precio N/D';
+    const zestStr  = zest  ? `Zestimate: $${parseInt(zest).toLocaleString()}` : '';
+
+    return `
+    <div class="zl-card">
+      <div class="zl-img">
+        ${imgUrl
+          ? `<img src="${imgUrl}" alt="${addr}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span class="zl-img-fallback" style="display:none">🏠</span>`
+          : `<span class="zl-img-fallback">🏠</span>`
+        }
+        <span class="zl-status-badge">${status.replace('_',' ')}</span>
+        <span class="zl-price-badge">${priceStr}</span>
+      </div>
+      <div class="zl-body">
+        <div class="zl-addr" title="${addr}">${addr}</div>
+        <div class="zl-city">${cityStr}</div>
+        <div class="zl-specs">
+          <span class="zl-spec">🛏 <strong>${beds}</strong> beds</span>
+          <span class="zl-spec">🚿 <strong>${baths}</strong> baths</span>
+          ${sqft ? `<span class="zl-spec">📐 <strong>${parseInt(sqft).toLocaleString()}</strong> sqft</span>` : ''}
+        </div>
+        ${zestStr ? `<div class="zl-zestimate">🔵 ${zestStr}</div>` : ''}
+        <div class="zl-actions">
+          <button class="zl-btn-analyze" onclick="preloadAnalyzer('${addr.replace(/'/g,"\\'")}','${cityStr.split(',')[0]}','${p.address?.zipcode||p.zipcode||''}',${price},'${zillowUrl}')">
+            ⚡ Analizar Deal
+          </button>
+          <a class="zl-btn-zillow" href="${zillowUrl}" target="_blank">🔗</a>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function preloadAnalyzer(addr, city, zip, price, zillowUrl) {
+  // Pre-fill the analyzer form and navigate to it
+  nav('analyzer', document.querySelector('[onclick*=analyzer]'));
+  setTimeout(() => {
+    if (addr) document.getElementById('f-addr').value = addr;
+    if (city) document.getElementById('f-city').value = city;
+    if (zip)  document.getElementById('f-zip').value  = zip;
+    if (price) document.getElementById('f-ask').value = price;
+    if (zillowUrl) document.getElementById('f-zillow').value = zillowUrl;
+    // Scroll to form
+    document.getElementById('f-addr').scrollIntoView({ behavior:'smooth', block:'center' });
+  }, 200);
+}
