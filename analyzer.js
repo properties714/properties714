@@ -67,7 +67,10 @@ function parseZillowUrl() {
       if (city) document.getElementById('f-city').value = city;
       if (zip && /^\d{5}$/.test(zip)) document.getElementById('f-zip').value = zip;
       status.style.display='block'; status.style.color='var(--green)';
-      status.textContent='✓ Dirección extraída — revisa y corrige si es necesario';
+      status.textContent='✓ Dirección extraída — el precio se cargará al analizar via Zillow';
+      // Show zillow badge on asking price
+      const badge = document.getElementById('ask-zillow-badge');
+      if (badge) badge.style.display='inline';
     }
   } else {
     status.style.display='block'; status.style.color='var(--muted)';
@@ -78,13 +81,16 @@ function parseZillowUrl() {
 // ══════════════════════════════════════
 //  LOCAL CALC — 7 EXIT STRATEGIES
 // ══════════════════════════════════════
-function localCalc(purchase, rehab, closing, holding, agent, rent, comps, exits) {
+function localCalc(purchase, rehab, closing, holding, agentInput, rent, comps, exits) {
   const selectedExits = exits || ['fix_flip','wholesale','rental'];
 
   // ── ARV ──
   const arv = comps.length
     ? Math.round(comps.reduce((s,c)=>s+c.sold_price,0)/comps.length)
     : Math.round(purchase * 1.45);
+
+  // ── Agent fees: if <20 treat as %, else as $ ──
+  const agent = agentInput < 20 ? Math.round(arv * (agentInput/100)) : agentInput;
 
   // ── Base numbers ──
   const totalCosts    = closing + holding + agent;
