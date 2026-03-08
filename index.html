@@ -197,12 +197,71 @@
     <div><div class="page-title"><span>Investment</span> Dashboard</div><div class="page-sub">Properties714 · Real-time overview</div></div>
     <button class="btn btn-gold" onclick="nav('analyzer',document.querySelector('[onclick*=analyzer]'))">⚡ Analyze Deal</button>
   </div>
+
+  <!-- STATS ROW -->
   <div class="stats-row">
     <div class="stat"><div class="stat-label">Properties</div><div class="stat-val" id="s-props">0</div><div class="stat-note">In database</div></div>
     <div class="stat"><div class="stat-label">Avg Score</div><div class="stat-val" id="s-score">—</div><div class="stat-note">Deal quality</div></div>
     <div class="stat"><div class="stat-label">Total Profit Est.</div><div class="stat-val" id="s-profit">$0</div><div class="stat-note">All deals</div></div>
     <div class="stat"><div class="stat-label">Good Deals</div><div class="stat-val" id="s-good">0</div><div class="stat-note">Score ≥ 70</div></div>
   </div>
+
+  <!-- ZILLOW MARKET SEARCH -->
+  <div class="card" style="margin-bottom:20px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div>
+        <div class="card-title" style="margin-bottom:2px">🏘 Zillow Market Search</div>
+        <div style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace">Propiedades en venta en tiempo real</div>
+      </div>
+      <span class="badge badge-blue">LIVE</span>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+      <div style="flex:1;min-width:140px">
+        <div class="form-label" style="margin-bottom:6px">ZIP Code</div>
+        <input class="form-input" id="zs-zip" placeholder="30093" style="width:100%">
+      </div>
+      <div style="flex:1;min-width:140px">
+        <div class="form-label" style="margin-bottom:6px">Ciudad (opcional)</div>
+        <input class="form-input" id="zs-city" placeholder="Norcross" style="width:100%">
+      </div>
+      <div style="flex:0.8;min-width:120px">
+        <div class="form-label" style="margin-bottom:6px">Precio Máx</div>
+        <select class="form-input" id="zs-maxprice" style="width:100%">
+          <option value="">Sin límite</option>
+          <option value="150000">$150,000</option>
+          <option value="200000">$200,000</option>
+          <option value="250000" selected>$250,000</option>
+          <option value="300000">$300,000</option>
+          <option value="400000">$400,000</option>
+          <option value="500000">$500,000</option>
+        </select>
+      </div>
+      <div style="flex:0.6;min-width:100px">
+        <div class="form-label" style="margin-bottom:6px">Resultados</div>
+        <select class="form-input" id="zs-count" style="width:100%">
+          <option value="5">5</option>
+          <option value="10" selected>10</option>
+          <option value="20">20</option>
+        </select>
+      </div>
+      <button class="btn btn-gold" onclick="searchZillow()" id="zs-btn" style="height:42px;padding:0 20px;white-space:nowrap">
+        🔍 Buscar
+      </button>
+    </div>
+    <div id="zs-status" style="margin-top:10px;font-size:12px;color:var(--muted);display:none"></div>
+    <div id="zs-loading" style="display:none;margin-top:16px">
+      <div class="loading-bar"><div class="dots"><span></span><span></span><span></span></div>Buscando en Zillow — esto toma ~30 segundos...</div>
+    </div>
+    <div id="zs-results" style="margin-top:16px;display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div id="zs-count-label" style="font-size:12px;color:var(--muted)"></div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.3);font-family:monospace">Datos de Zillow via Apify</div>
+      </div>
+      <div id="zs-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px"></div>
+    </div>
+  </div>
+
+  <!-- RECENT DEALS + STRATEGY MIX -->
   <div class="grid-2">
     <div class="card">
       <div class="card-title">Recent Deals</div>
