@@ -7,6 +7,8 @@ const N8N_ANALYZE  = 'https://n8n.properties714.com/webhook/gpai-analyze-deal';
 const N8N_GET_DEAL = 'https://n8n.properties714.com/webhook/gpai-get-deal';
 const N8N_PIPELINE = 'https://n8n.properties714.com/webhook/gpai-pipeline';
 const N8N = N8N_ANALYZE; // backward compat
+const N8N_SEARCH   = 'https://n8n.properties714.com/webhook/gpai-search-listings';
+const APIFY_TOKEN  = 'apify_api_D4l6yd2A05N9HfC9ehyUOXZJznh7002SUDb5';
 
 // ── Init Supabase ──
 const { createClient } = supabase;
