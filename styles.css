@@ -939,3 +939,59 @@ hr.divider { border:none; border-top:1px solid var(--border); margin:20px 0; }
   box-shadow:0 0 6px var(--red);
   animation:glow 1.5s infinite;
 }
+
+/* ── ZILLOW LISTING CARDS ── */
+.zl-card {
+  background: linear-gradient(135deg, #1a1d35 0%, #1e2240 100%);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.2s;
+  cursor: default;
+}
+.zl-card:hover { border-color: rgba(245,200,66,0.4); transform: translateY(-2px); box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
+.zl-img {
+  height: 160px;
+  background: linear-gradient(135deg, #141728, #1c2038);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 36px; position: relative; overflow: hidden;
+}
+.zl-img img { width:100%; height:100%; object-fit:cover; }
+.zl-img-fallback { font-size:36px; opacity:0.4; }
+.zl-status-badge {
+  position: absolute; top: 8px; left: 8px;
+  background: rgba(34,232,136,0.9); color: #000;
+  font-size: 9px; font-weight: 800; padding: 3px 8px;
+  border-radius: 4px; letter-spacing: 1px; text-transform: uppercase;
+}
+.zl-price-badge {
+  position: absolute; bottom: 8px; left: 8px;
+  background: rgba(0,0,0,0.75); color: #f5c842;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px; font-weight: 800;
+  padding: 4px 10px; border-radius: 6px;
+  backdrop-filter: blur(4px);
+}
+.zl-body { padding: 14px; }
+.zl-addr { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.zl-city { font-size: 11px; color: rgba(255,255,255,0.5); margin-bottom: 10px; font-family: monospace; }
+.zl-specs { display: flex; gap: 12px; margin-bottom: 12px; }
+.zl-spec { font-size: 12px; color: rgba(255,255,255,0.7); display: flex; align-items: center; gap: 4px; }
+.zl-spec strong { color: #fff; }
+.zl-zestimate { font-size: 11px; color: rgba(91,159,255,0.9); margin-bottom: 12px; }
+.zl-actions { display: flex; gap: 8px; }
+.zl-btn-analyze {
+  flex: 1; background: linear-gradient(135deg,#f5c842,#ffd966);
+  color: #000; border: none; border-radius: 8px;
+  padding: 8px; font-size: 12px; font-weight: 800;
+  cursor: pointer; transition: all 0.15s; font-family: 'Syne', sans-serif;
+}
+.zl-btn-analyze:hover { box-shadow: 0 0 16px rgba(245,200,66,0.5); }
+.zl-btn-zillow {
+  background: rgba(0,106,255,0.15); color: #5b9fff;
+  border: 1px solid rgba(91,159,255,0.3); border-radius: 8px;
+  padding: 8px 12px; font-size: 12px; font-weight: 700;
+  cursor: pointer; transition: all 0.15s; font-family: 'Syne', sans-serif;
+  text-decoration: none; display: flex; align-items: center;
+}
+.zl-btn-zillow:hover { background: rgba(0,106,255,0.25); }
