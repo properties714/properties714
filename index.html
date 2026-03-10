@@ -144,15 +144,19 @@
     Properties<span class="logo-714">714</span>
     <span class="logo-badge">PRO</span>
   </div>
-  <div style="display:flex;align-items:center;gap:16px">
+  <div style="display:flex;align-items:center;gap:12px">
     <div class="header-status">
       <span class="pulse"></span>
-      System Online
+      <span data-t="system_online">System Online</span>
     </div>
+    <button class="lang-toggle" onclick="toggleLang()" id="lang-btn" title="Switch language">
+      <span id="lang-flag">🇲🇽</span>
+      <span id="lang-label">ES</span>
+    </button>
     <div class="user-menu" id="user-menu-wrap">
       <div class="user-avatar" id="user-avatar-initials">?</div>
       <div class="user-email" id="user-email-display"></div>
-      <button class="user-logout" onclick="doLogout()">Sign Out</button>
+      <button class="user-logout" onclick="doLogout()" data-t="sign_out">Sign Out</button>
     </div>
   </div>
 </header>
@@ -161,27 +165,27 @@
 <!-- ══ SIDEBAR ══ -->
 <nav class="sidebar">
   <div class="nav-group">
-    <div class="nav-group-label">Overview</div>
-    <div class="nav-item active" onclick="nav('dashboard',this)"><span class="nav-icon">▪</span>Dashboard</div>
-    <div class="nav-item" onclick="nav('pipeline',this)"><span class="nav-icon">⬡</span>Pipeline</div>
+    <div class="nav-group-label" data-t="nav_overview">Overview</div>
+    <div class="nav-item active" onclick="nav('dashboard',this)"><span class="nav-icon">▪</span><span data-t="nav_dashboard">Dashboard</span></div>
+    <div class="nav-item" onclick="nav('pipeline',this)"><span class="nav-icon">⬡</span><span data-t="nav_pipeline">Pipeline</span></div>
   </div>
   <div class="nav-group">
-    <div class="nav-group-label">Analysis</div>
-    <div class="nav-item" onclick="nav('analyzer',this)"><span class="nav-icon">⚡</span>Deal Analyzer</div>
-    <div class="nav-item" onclick="nav('repairs',this)"><span class="nav-icon">🔧</span>Repair Calc</div>
-    <div class="nav-item" onclick="nav('properties',this)"><span class="nav-icon">◻</span>Properties</div>
+    <div class="nav-group-label" data-t="nav_analysis">Analysis</div>
+    <div class="nav-item" onclick="nav('analyzer',this)"><span class="nav-icon">⚡</span><span data-t="nav_analyzer">Deal Analyzer</span></div>
+    <div class="nav-item" onclick="nav('repairs',this)"><span class="nav-icon">🔧</span><span data-t="nav_repairs">Repair Calc</span></div>
+    <div class="nav-item" onclick="nav('properties',this)"><span class="nav-icon">◻</span><span data-t="nav_properties">Properties</span></div>
   </div>
   <div class="nav-group">
-    <div class="nav-group-label">Network</div>
-    <div class="nav-item" onclick="nav('crm',this)"><span class="nav-icon">👥</span>CRM</div>
-    <div class="nav-item" onclick="nav('lenders',this)"><span class="nav-icon">💰</span>Lenders</div>
-    <div class="nav-item" onclick="nav('listings',this)"><span class="nav-icon">🏠</span>Listings</div>
+    <div class="nav-group-label" data-t="nav_network">Network</div>
+    <div class="nav-item" onclick="nav('crm',this)"><span class="nav-icon">👥</span><span data-t="nav_crm">CRM</span></div>
+    <div class="nav-item" onclick="nav('lenders',this)"><span class="nav-icon">💰</span><span data-t="nav_lenders">Lenders</span></div>
+    <div class="nav-item" onclick="nav('listings',this)"><span class="nav-icon">🏠</span><span data-t="nav_listings">Listings</span></div>
   </div>
   <div class="nav-group">
-    <div class="nav-group-label">Tools</div>
-    <div class="nav-item" onclick="nav('scripts',this)"><span class="nav-icon">📋</span>Scripts</div>
-    <div class="nav-item" onclick="nav('docs',this)"><span class="nav-icon">📄</span>Documents</div>
-    <div class="nav-item" onclick="nav('settings',this)"><span class="nav-icon">⚙️</span>Settings</div>
+    <div class="nav-group-label" data-t="nav_tools">Tools</div>
+    <div class="nav-item" onclick="nav('scripts',this)"><span class="nav-icon">📋</span><span data-t="nav_scripts">Scripts</span></div>
+    <div class="nav-item" onclick="nav('docs',this)"><span class="nav-icon">📄</span><span data-t="nav_docs">Documents</span></div>
+    <div class="nav-item" onclick="nav('settings',this)"><span class="nav-icon">⚙️</span><span data-t="nav_settings">Settings</span></div>
   </div>
 
 </nav>
@@ -191,16 +195,16 @@
 <!-- ══════════ DASHBOARD ══════════ -->
 <div id="page-dashboard" class="page active">
   <div class="page-hd">
-    <div><div class="page-title"><span>Investment</span> Dashboard</div><div class="page-sub">Properties714 · Real-time overview</div></div>
-    <button class="btn btn-gold" onclick="nav('analyzer',document.querySelector('[onclick*=analyzer]'))">⚡ Analyze Deal</button>
+    <div><div class="page-title"><span data-t="pg_dashboard_title">Investment Dashboard</span></div><div class="page-sub"><span data-t="pg_dashboard_sub">Properties714 · Real-time overview</span></div></div>
+    <button class="btn btn-gold" onclick="nav('analyzer',document.querySelector('[onclick*=analyzer]'))"><span data-t="btn_analyze_deal">⚡ Analyze Deal</span></button>
   </div>
 
   <!-- STATS ROW -->
   <div class="stats-row">
-    <div class="stat"><div class="stat-label">Properties</div><div class="stat-val" id="s-props">0</div><div class="stat-note">In database</div></div>
-    <div class="stat"><div class="stat-label">Avg Score</div><div class="stat-val" id="s-score">—</div><div class="stat-note">Deal quality</div></div>
-    <div class="stat"><div class="stat-label">Total Profit Est.</div><div class="stat-val" id="s-profit">$0</div><div class="stat-note">All deals</div></div>
-    <div class="stat"><div class="stat-label">Good Deals</div><div class="stat-val" id="s-good">0</div><div class="stat-note">Score ≥ 70</div></div>
+    <div class="stat"><div class="stat-label" id="s-props-label" data-t="stat_properties">Properties</div><div class="stat-val" id="s-props">0</div><div class="stat-note" id="s-props-note" data-t="stat_in_db">In database</div></div>
+    <div class="stat"><div class="stat-label" id="s-score-label" data-t="stat_avg_score">Avg Score</div><div class="stat-val" id="s-score">—</div><div class="stat-note" id="s-score-note" data-t="stat_deal_quality">Deal quality</div></div>
+    <div class="stat"><div class="stat-label" id="s-profit-label" data-t="stat_total_profit">Total Profit Est.</div><div class="stat-val" id="s-profit">$0</div><div class="stat-note" id="s-profit-note" data-t="stat_all_deals">All deals</div></div>
+    <div class="stat"><div class="stat-label" id="s-good-label" data-t="stat_good_deals">Good Deals</div><div class="stat-val" id="s-good">0</div><div class="stat-note" id="s-good-note" data-t="stat_score_70">Score ≥ 70</div></div>
   </div>
 
   <!-- ZILLOW MARKET SEARCH -->
@@ -261,11 +265,11 @@
   <!-- RECENT DEALS + STRATEGY MIX -->
   <div class="grid-2">
     <div class="card">
-      <div class="card-title">Recent Deals</div>
+      <div class="card-title"><span data-t="section_recent_deals">Recent Deals</span></div>
       <div id="db-recent"><div class="empty"><div class="empty-icon">📋</div><h3>No deals yet</h3><p>Analyze your first property</p></div></div>
     </div>
     <div class="card">
-      <div class="card-title">Strategy Mix</div>
+      <div class="card-title"><span data-t="section_strategy_mix">Strategy Mix</span></div>
       <div id="db-strats"><div class="empty"><div class="empty-icon">📊</div><h3>No data</h3><p>Add deals to see distribution</p></div></div>
     </div>
   </div>
@@ -274,8 +278,8 @@
 <!-- ══════════ PIPELINE ══════════ -->
 <div id="page-pipeline" class="page">
   <div class="page-hd">
-    <div><div class="page-title">Deal Pipeline</div><div class="page-sub">Track every property through your process</div></div>
-    <button class="btn btn-gold" onclick="nav('analyzer',document.querySelector('[onclick*=analyzer]'))">+ Add Property</button>
+    <div><div class="page-title"><span data-t="pg_pipeline_title">Deal Pipeline</span></div><div class="page-sub" data-t="pg_pipeline_sub">Track every property through your process</div></div>
+    <button class="btn btn-gold" onclick="nav('analyzer',document.querySelector('[onclick*=analyzer]'))"><span data-t="btn_add_property">+ Add Property</span></button>
   </div>
   <div class="kanban" id="kanban-board"></div>
 </div>
@@ -283,16 +287,16 @@
 <!-- ══════════ DEAL ANALYZER ══════════ -->
 <div id="page-analyzer" class="page">
   <div class="page-hd">
-    <div><div class="page-title">Deal Analyzer</div><div class="page-sub">AI-powered · Saves to Supabase automatically</div></div>
+    <div><div class="page-title"><span data-t="pg_analyzer_title">Deal Analyzer</span></div><div class="page-sub" data-t="pg_analyzer_sub">AI-powered · Saves to Supabase automatically</div></div>
   </div>
   <div class="grid-2">
     <div>
       <div class="card" style="margin-bottom:14px">
-        <div class="card-title">Property Info</div>
-        <div class="form-group"><div class="form-label">Address</div><input class="form-input" id="f-addr" placeholder="123 Peachtree St NE, Atlanta"></div>
+        <div class="card-title"><span data-t="section_property_info">Property Info</span></div>
+        <div class="form-group"><div class="form-label"><span data-t="lbl_address">Address</span></div><input class="form-input" id="f-addr" placeholder="123 Peachtree St NE, Atlanta"></div>
         <div class="grid-2">
-          <div class="form-group"><div class="form-label">City</div><input class="form-input" id="f-city" placeholder="Atlanta"></div>
-          <div class="form-group"><div class="form-label">ZIP</div><input class="form-input" id="f-zip" placeholder="30309"></div>
+          <div class="form-group"><div class="form-label"><span data-t="lbl_city">City</span></div><input class="form-input" id="f-city" placeholder="Atlanta"></div>
+          <div class="form-group"><div class="form-label"><span data-t="lbl_zip">ZIP</span></div><input class="form-input" id="f-zip" placeholder="30309"></div>
         </div>
         <hr class="divider">
 
@@ -303,21 +307,21 @@
         </div>
         <div class="grid-2">
           <div class="form-group">
-            <div class="form-label">Asking Price <span id="ask-zillow-badge" style="display:none;font-size:9px;background:rgba(0,106,255,0.15);color:#4d9fff;border:1px solid rgba(0,106,255,0.3);padding:2px 7px;border-radius:10px;margin-left:4px">📍 Zillow</span></div>
+            <div class="form-label"><span data-t="lbl_asking_price">Asking Price</span> <span id="ask-zillow-badge" style="display:none;font-size:9px;background:rgba(0,106,255,0.15);color:#4d9fff;border:1px solid rgba(0,106,255,0.3);padding:2px 7px;border-radius:10px;margin-left:4px">📍 Zillow</span></div>
             <div style="position:relative"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-family:monospace">$</span><input class="form-input" id="f-ask" type="number" placeholder="210,000" style="padding-left:22px"></div>
           </div>
           <div class="form-group">
-            <div class="form-label">Rehab Estimado</div>
+            <div class="form-label"><span data-t="lbl_rehab">Rehab Estimado</span></div>
             <div style="position:relative"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-family:monospace">$</span><input class="form-input" id="f-rehab" type="number" placeholder="60,000" style="padding-left:22px"></div>
           </div>
         </div>
         <div class="grid-2">
           <div class="form-group">
-            <div class="form-label">Closing Costs <span style="color:var(--muted);font-size:10px">(title, escrow...)</span></div>
+            <div class="form-label"><span data-t="lbl_closing">Closing Costs</span> <span style="color:var(--muted);font-size:10px">(title, escrow...)</span></div>
             <div style="position:relative"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-family:monospace">$</span><input class="form-input" id="f-close" type="number" placeholder="8,000" style="padding-left:22px"></div>
           </div>
           <div class="form-group">
-            <div class="form-label">Inspection Fee</div>
+            <div class="form-label"><span data-t="lbl_inspection">Inspection Fee</span></div>
             <div style="position:relative"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-family:monospace">$</span><input class="form-input" id="f-inspect" type="number" placeholder="500" style="padding-left:22px"></div>
           </div>
         </div>
@@ -329,7 +333,7 @@
         </div>
         <div class="grid-2">
           <div class="form-group">
-            <div class="form-label">Meses de Holding</div>
+            <div class="form-label"><span data-t="lbl_months">Meses de Holding</span></div>
             <select class="form-input" id="f-months">
               <option value="3">3 meses</option>
               <option value="4">4 meses</option>
@@ -346,7 +350,7 @@
         </div>
         <div class="grid-2">
           <div class="form-group">
-            <div class="form-label">Property Tax / año</div>
+            <div class="form-label"><span data-t="lbl_tax">Property Tax / año</span></div>
             <div style="position:relative"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-family:monospace">$</span><input class="form-input" id="f-tax" type="number" placeholder="3,600" style="padding-left:22px"></div>
           </div>
           <div class="form-group">
@@ -367,14 +371,14 @@
         </div>
         <div class="grid-2">
           <div class="form-group">
-            <div class="form-label">Agent Fees <span style="color:var(--muted);font-size:10px">(% del ARV)</span></div>
+            <div class="form-label"><span data-t="lbl_agent">Agent Fees</span> <span style="color:var(--muted);font-size:10px" data-t="lbl_agent_note">(% del ARV)</span></div>
             <div style="display:flex;align-items:center;gap:6px">
               <input class="form-input" id="f-agent" type="number" placeholder="3.0" step="0.5" min="0" max="10" style="flex:1">
               <span style="color:var(--muted);font-size:12px;white-space:nowrap;font-family:monospace">%</span>
             </div>
           </div>
           <div class="form-group">
-            <div class="form-label">Staging / Marketing</div>
+            <div class="form-label"><span data-t="lbl_staging">Staging / Marketing</span></div>
             <div style="position:relative"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-family:monospace">$</span><input class="form-input" id="f-staging" type="number" placeholder="2,000" style="padding-left:22px"></div>
           </div>
         </div>
@@ -386,11 +390,11 @@
         </div>
         <div class="grid-2">
           <div class="form-group">
-            <div class="form-label">Renta Mensual Est.</div>
+            <div class="form-label"><span data-t="lbl_rent">Renta Mensual Est.</span></div>
             <div style="position:relative"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-family:monospace">$</span><input class="form-input" id="f-rent" type="number" placeholder="2,200" style="padding-left:22px"></div>
           </div>
           <div class="form-group">
-            <div class="form-label">Vacancia <span style="color:var(--muted);font-size:10px">(%)</span></div>
+            <div class="form-label"><span data-t="lbl_vacancy">Vacancia </span><span style="color:var(--muted);font-size:10px">(%)</span></div>
             <div style="display:flex;align-items:center;gap:6px">
               <input class="form-input" id="f-vacancy" type="number" placeholder="8" step="1" min="0" max="30" style="flex:1">
               <span style="color:var(--muted);font-size:12px;font-family:monospace">%</span>
@@ -399,14 +403,14 @@
         </div>
         <div class="grid-2">
           <div class="form-group">
-            <div class="form-label">Mgmt Fee <span style="color:var(--muted);font-size:10px">(%)</span></div>
+            <div class="form-label"><span data-t="lbl_mgmt">Mgmt Fee </span><span style="color:var(--muted);font-size:10px">(%)</span></div>
             <div style="display:flex;align-items:center;gap:6px">
               <input class="form-input" id="f-mgmt" type="number" placeholder="10" step="1" min="0" max="20" style="flex:1">
               <span style="color:var(--muted);font-size:12px;font-family:monospace">%</span>
             </div>
           </div>
           <div class="form-group">
-            <div class="form-label">Seguro / mes</div>
+            <div class="form-label"><span data-t="lbl_insurance">Seguro / mes</span></div>
             <div style="position:relative"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-family:monospace">$</span><input class="form-input" id="f-insure" type="number" placeholder="150" style="padding-left:22px"></div>
           </div>
         </div>
@@ -418,14 +422,14 @@
         </div>
         <div class="grid-2">
           <div class="form-group">
-            <div class="form-label">Down Payment <span style="color:var(--muted);font-size:10px">(%)</span></div>
+            <div class="form-label"><span data-t="lbl_down">Down Payment </span><span style="color:var(--muted);font-size:10px">(%)</span></div>
             <div style="display:flex;align-items:center;gap:6px">
               <input class="form-input" id="f-down" type="number" placeholder="20" step="5" min="0" max="100" style="flex:1">
               <span style="color:var(--muted);font-size:12px;font-family:monospace">%</span>
             </div>
           </div>
           <div class="form-group">
-            <div class="form-label">Tasa de Interés <span style="color:var(--muted);font-size:10px">(%)</span></div>
+            <div class="form-label"><span data-t="lbl_rate">Tasa de Interés </span><span style="color:var(--muted);font-size:10px">(%)</span></div>
             <div style="display:flex;align-items:center;gap:6px">
               <input class="form-input" id="f-rate" type="number" placeholder="7.5" step="0.25" min="0" max="20" style="flex:1">
               <span style="color:var(--muted);font-size:12px;font-family:monospace">%</span>
@@ -434,7 +438,7 @@
         </div>
         <div class="grid-2">
           <div class="form-group">
-            <div class="form-label">Plazo del Préstamo</div>
+            <div class="form-label"><span data-t="lbl_term">Plazo del Préstamo</span></div>
             <select class="form-input" id="f-term">
               <option value="15">15 años</option>
               <option value="20">20 años</option>
@@ -442,7 +446,7 @@
             </select>
           </div>
           <div class="form-group">
-            <div class="form-label">Hard Money Points <span style="color:var(--muted);font-size:10px">(%)</span></div>
+            <div class="form-label"><span data-t="lbl_points">Hard Money Points </span><span style="color:var(--muted);font-size:10px">(%)</span></div>
             <div style="display:flex;align-items:center;gap:6px">
               <input class="form-input" id="f-points" type="number" placeholder="2" step="0.5" min="0" max="10" style="flex:1">
               <span style="color:var(--muted);font-size:12px;font-family:monospace">pts</span>
@@ -513,7 +517,7 @@
         <div id="exit-warning" style="font-size:11px;color:var(--amber);margin-top:8px;display:none">⚠ Selecciona al menos una estrategia</div>
       </div>
 
-      <button class="btn btn-gold" onclick="analyzeDeal()" style="width:100%;justify-content:center;padding:13px;font-size:14px">⚡ Analizar Trato</button>
+      <button class="btn btn-gold" onclick="analyzeDeal()" style="width:100%;justify-content:center;padding:13px;font-size:14px"><span data-t="btn_analizar">⚡ Analizar Trato</span></button>
     </div>
     <div>
       <div id="result-placeholder" class="card" style="height:300px;display:flex;align-items:center;justify-content:center">
@@ -528,7 +532,7 @@
 <!-- ══════════ REPAIR CALCULATOR ══════════ -->
 <div id="page-repairs" class="page">
   <div class="page-hd">
-    <div><div class="page-title">Repair Calculator</div><div class="page-sub">Room-by-room rehab estimator</div></div>
+    <div><div class="page-title"><span data-t="pg_repairs_title">Repair Calculator</span></div><div class="page-sub"><span data-t="pg_repairs_sub">Room-by-room rehab estimator</span></div></div>
     <div style="display:flex;gap:10px;align-items:center">
       <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted)">Total:</div>
       <div style="font-size:22px;font-weight:800;color:var(--gold)" id="repair-total-hd">$0</div>
@@ -624,7 +628,7 @@
 <!-- ══════════ SETTINGS ══════════ -->
 <div id="page-settings" class="page">
   <div class="page-hd">
-    <div><div class="page-title">Account Settings</div><div class="page-sub">Manage your account</div></div>
+    <div><div class="page-title"><span data-t="pg_settings_title">Account Settings</span></div><div class="page-sub"><span data-t="pg_settings_sub">Manage your account</span></div></div>
   </div>
   <div style="max-width:520px;display:flex;flex-direction:column;gap:16px">
 
@@ -903,5 +907,6 @@
 <script src="repairs.js"></script>
 <script src="crm.js"></script>
 <script src="dashboard.js"></script>
+  <script src="lang.js"></script>
 </body>
 </html>
