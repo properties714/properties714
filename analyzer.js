@@ -213,6 +213,15 @@ function localCalc(purchase, rehab, closing, holding, agentInput, rent, comps, e
 // ══════════════════════════════════════
 //  DEAL ANALYZER
 // ══════════════════════════════════════
+function updateHoldingTotal() {
+  const holdPerMo = parseFloat(document.getElementById('f-hold')?.value)||1000;
+  const months    = parseInt(document.getElementById('f-months')?.value)||6;
+  const taxYear   = parseFloat(document.getElementById('f-tax')?.value)||3600;
+  const hoa       = parseFloat(document.getElementById('f-hoa')?.value)||0;
+  const total     = Math.round(holdPerMo * months + (taxYear/12)*months + hoa*months);
+  const el        = document.getElementById('holding-total-val');
+  if (el) el.textContent = '$' + total.toLocaleString();
+}
 async function analyzeDeal() {
   const addr = document.getElementById('f-addr').value.trim();
   if (!addr) { alert('Enter a property address'); return; }
@@ -235,12 +244,12 @@ async function analyzeDeal() {
   try {
     const res = await fetch(N8N_ANALYZE, {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ address:addr, city, state:'GA', zip, asking_price:purchase, estimated_rehab:rehab, closing_costs:closing, holding_cost:holding, agent_fees:agent, estimated_rent:rent, comparables:comps, exit_strategies:[...SELECTED_EXITS], zillow_url: document.getElementById('f-zillow').value.trim(), user_id: CURRENT_USER?.id || null })
+      body: JSON.stringify({ address:addr, city, state:'GA', zip, asking_price:purchase, estimated_rehab:rehab, closing_costs:closing, holding_cost:holdTotal, agent_fees:agent, estimated_rent:rent, inspection_fee:inspect, property_tax:taxYear, hoa_monthly:hoa, holding_months:months, staging:staging, vacancy_pct:vacancy, mgmt_pct:mgmtPct, insurance:insure, down_payment_pct:downPct, interest_rate:ratePct, loan_term:termYrs, points:points, mortgage_payment:mortgage, net_rent:rentNet, comparables:comps, exit_strategies:[...SELECTED_EXITS], zillow_url: document.getElementById('f-zillow').value.trim(), user_id: CURRENT_USER?.id || null })
     });
     if (!res.ok) throw new Error('n8n '+res.status);
     result = await res.json();
   } catch(e) {
-    result = localCalc(purchase,rehab,closing,holding,agent,rent,comps,[...SELECTED_EXITS]);
+    result = localCalc(purchase,rehab,closing,holdTotal,agent,rent,comps,[...SELECTED_EXITS]);
   }
 
   const a = result.analysis||{};
