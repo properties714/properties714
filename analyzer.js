@@ -457,36 +457,105 @@ async function analyzeDeal() {
     `<div class="strat-panel ${i===0?'active':''}" id="spanel-${ex}">${panelHTML(ex)}</div>`
   ).join('');
 
+  // ── Rich AI fields ──
+  const execSummary = a.executive_summary || '';
+  const strengths   = a.strengths || [];
+  const risks       = a.risks || [];
+  const stratRec    = a.strategy_recommendation || '';
+  const mktInsight  = a.market_insight || '';
+  const negTips     = a.negotiation_tips || [];
+  const redFlags    = a.red_flags || [];
+  const isAI        = result.status === 'ai';
+
   document.getElementById('result-output').innerHTML = `
     <div class="deal-result">
-      <!-- Header -->
+
+      <!-- ── HEADER ── -->
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
-        <div>
-          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(232,230,224,0.35);margin-bottom:6px">${addr}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(232,230,224,0.35);margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${addr}</div>
           <div class="deal-rec" style="color:${recColor}">${recIcon} ${rec}</div>
           <div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
             ${savedBadge}
+            ${isAI ? '<span class="badge badge-blue">🤖 GPT-4o</span>' : '<span class="badge badge-muted">⚡ Local</span>'}
             <span style="font-size:11px;color:var(--muted)">${result.comps_used||0} comps · ${exits.length} estrategias</span>
           </div>
         </div>
-        <div style="text-align:right">
+        <div style="text-align:right;flex-shrink:0;margin-left:16px">
           <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(232,230,224,0.35);margin-bottom:4px">DEAL SCORE</div>
           <div class="deal-score-big" style="color:${scoreColor}">${score}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">/100</div>
         </div>
       </div>
-      <!-- Key metrics bar -->
+
+      <!-- ── KEY METRICS ── -->
       <div class="deal-metrics" style="margin-bottom:16px">
         <div class="deal-metric"><div class="dm-label">ARV</div><div class="dm-val">$${(a.arv||0).toLocaleString()}</div></div>
         <div class="deal-metric"><div class="dm-label">Inversión Total</div><div class="dm-val">$${(a.total_investment||totalInv).toLocaleString()}</div></div>
         <div class="deal-metric"><div class="dm-label">Ganancia Est.</div><div class="dm-val" style="color:${(a.estimated_profit||0)>0?'var(--green)':'var(--red)'}">$${Math.round(a.estimated_profit||0).toLocaleString()}</div></div>
-        <div class="deal-metric"><div class="dm-label">ROI</div><div class="dm-val" style="color:${(a.roi||0)>15?'var(--green)':'var(--red)'}">${parseFloat(a.roi||0).toFixed(1)}%</div></div>
+        <div class="deal-metric"><div class="dm-label">ROI</div><div class="dm-val" style="color:${(a.roi||0)>15?'var(--green)':'var(--amber)'}">${parseFloat(a.roi||0).toFixed(1)}%</div></div>
       </div>
-      <!-- AI Advisor -->
-      <div class="deal-ai" style="margin-bottom:16px"><strong>🤖 AI Advisor:</strong> ${result.ai_advisor||'Análisis completado.'}</div>
-      <!-- Strategy Tabs -->
-      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;font-weight:600">Análisis por Estrategia</div>
+
+      <!-- ── EXECUTIVE SUMMARY (AI) ── -->
+      ${execSummary ? `
+      <div style="background:linear-gradient(135deg,rgba(245,200,66,0.08),rgba(77,159,255,0.06));border:1px solid rgba(245,200,66,0.2);border-radius:10px;padding:14px 16px;margin-bottom:12px">
+        <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-family:'JetBrains Mono',monospace;margin-bottom:8px">🤖 Análisis IA — GPT-4o</div>
+        <div style="font-size:13px;line-height:1.65;color:rgba(240,238,232,0.92)">${execSummary}</div>
+      </div>` : `<div class="deal-ai" style="margin-bottom:12px"><strong>⚡ Análisis Local:</strong> ${result.ai_advisor||'Análisis completado.'}</div>`}
+
+      <!-- ── STRENGTHS & RISKS ── -->
+      ${(strengths.length||risks.length) ? `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+        ${strengths.length ? `<div style="background:rgba(31,219,138,0.07);border:1px solid rgba(31,219,138,0.2);border-radius:10px;padding:12px">
+          <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--green);font-family:monospace;margin-bottom:8px">✅ Fortalezas</div>
+          ${strengths.map(s=>`<div style="font-size:12px;padding:3px 0;display:flex;gap:7px;color:rgba(240,238,232,0.85)"><span style="color:var(--green);flex-shrink:0">▸</span>${s}</div>`).join('')}
+        </div>` : ''}
+        ${risks.length ? `<div style="background:rgba(255,79,79,0.07);border:1px solid rgba(255,79,79,0.2);border-radius:10px;padding:12px">
+          <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--red);font-family:monospace;margin-bottom:8px">⚠ Riesgos</div>
+          ${risks.map(r=>`<div style="font-size:12px;padding:3px 0;display:flex;gap:7px;color:rgba(240,238,232,0.85)"><span style="color:var(--amber);flex-shrink:0">▸</span>${r}</div>`).join('')}
+        </div>` : ''}
+      </div>` : ''}
+
+      <!-- ── RED FLAGS ── -->
+      ${redFlags.filter(f=>f).length ? `
+      <div style="background:rgba(255,79,79,0.1);border:1px solid rgba(255,79,79,0.35);border-radius:10px;padding:12px;margin-bottom:12px">
+        <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--red);font-family:monospace;margin-bottom:6px">🚨 Red Flags</div>
+        ${redFlags.filter(f=>f).map(f=>`<div style="font-size:12px;color:rgba(255,120,120,0.95);padding:2px 0">⛔ ${f}</div>`).join('')}
+      </div>` : ''}
+
+      <!-- ── STRATEGY RECOMMENDATION ── -->
+      ${stratRec ? `
+      <div style="background:rgba(77,159,255,0.07);border:1px solid rgba(77,159,255,0.2);border-radius:10px;padding:14px;margin-bottom:12px">
+        <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--blue);font-family:monospace;margin-bottom:8px">🎯 Estrategia Recomendada</div>
+        <div style="font-size:12px;line-height:1.7;color:rgba(240,238,232,0.88)">${stratRec}</div>
+      </div>` : ''}
+
+      <!-- ── MARKET INSIGHT ── -->
+      ${mktInsight ? `
+      <div style="background:rgba(167,139,250,0.07);border:1px solid rgba(167,139,250,0.2);border-radius:10px;padding:14px;margin-bottom:12px">
+        <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:#a78bfa;font-family:monospace;margin-bottom:8px">📍 Mercado Local</div>
+        <div style="font-size:12px;line-height:1.7;color:rgba(240,238,232,0.88)">${mktInsight}</div>
+      </div>` : ''}
+
+      <!-- ── NEGOTIATION TIPS ── -->
+      ${negTips.length ? `
+      <div style="background:rgba(245,200,66,0.06);border:1px solid rgba(245,200,66,0.15);border-radius:10px;padding:12px;margin-bottom:12px">
+        <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);font-family:monospace;margin-bottom:8px">🤝 Tips de Negociación</div>
+        ${negTips.map((t,i)=>`<div style="font-size:12px;padding:4px 0;display:flex;gap:10px;color:rgba(240,238,232,0.85)"><span style="color:var(--gold);font-family:monospace;font-weight:800;flex-shrink:0">${i+1}.</span>${t}</div>`).join('')}
+      </div>` : ''}
+
+      <!-- ── FINAL EXPERT ADVICE ── -->
+      ${result.ai_advisor && isAI ? `
+      <div style="background:rgba(31,219,138,0.06);border:1px solid rgba(31,219,138,0.2);border-radius:10px;padding:12px;margin-bottom:12px">
+        <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--green);font-family:monospace;margin-bottom:6px">💡 Consejo Final del Experto</div>
+        <div style="font-size:13px;font-style:italic;color:rgba(240,238,232,0.9)">"${result.ai_advisor}"</div>
+      </div>` : ''}
+
+      <!-- ── STRATEGY TABS ── -->
+      <div style="font-size:10px;color:var(--muted);margin:4px 0 8px;text-transform:uppercase;letter-spacing:1.5px;font-weight:700;font-family:monospace">Análisis por Estrategia</div>
       <div class="strat-tabs">${tabsHTML}</div>
       <div id="strat-panels-container">${panelsHTML}</div>
+
     </div>`;
   updateStats();
 }
