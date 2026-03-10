@@ -132,27 +132,28 @@ async function searchZillow() {
   results.style.display='none';
 
   try {
-    const res = await fetch(
-      `https://api.apify.com/v2/acts/maxcopell~zillow-scraper/run-sync-get-dataset-items?token=${APIFY_TOKEN}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          searchUrls: [{ url: searchUrl }],
-          maxItems: count
-        })
-      }
-    );
+    // Route through n8n to avoid CORS (n8n calls Apify server-side)
+    const res = await fetch(N8N_SEARCH, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        search_url: searchUrl,
+        max_items:  count,
+        max_price:  maxp ? parseInt(maxp) : null,
+        zip, city,
+        user_id: CURRENT_USER?.id || null
+      })
+    });
 
-    if (!res.ok) throw new Error('Apify error ' + res.status);
+    if (!res.ok) throw new Error('n8n error ' + res.status);
     const data = await res.json();
 
     loading.style.display='none';
     btn.disabled=false; btn.textContent='🔍 Buscar';
 
-    // Filter by max price if set
-    let items = Array.isArray(data) ? data : [];
-    if (maxp) items = items.filter(p => (p.price||p.listPrice||0) <= parseInt(maxp));
+    // n8n returns { listings: [...] } or raw array
+    let items = Array.isArray(data) ? data : (data.listings || data.results || []);
+    if (maxp) items = items.filter(p => (p.price||p.unformattedPrice||0) <= parseInt(maxp));
 
     if (!items.length) {
       status.style.display='block'; status.style.color='var(--amber)';
@@ -166,7 +167,7 @@ async function searchZillow() {
     loading.style.display='none';
     btn.disabled=false; btn.textContent='🔍 Buscar';
     status.style.display='block'; status.style.color='var(--red)';
-    status.textContent='❌ Error conectando con Apify. Verifica que n8n esté activo.';
+    status.textContent='❌ Error. Verifica que el workflow de n8n esté activo (gpai-search-listings).';
     console.error('Zillow search error:', e);
   }
 }
