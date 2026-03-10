@@ -1023,3 +1023,20 @@ hr.divider { border:none; border-top:1px solid var(--border); margin:20px 0; }
   margin-bottom: 4px;
   display: flex; justify-content: space-between; align-items: center;
 }
+
+/* ── LANGUAGE TOGGLE ── */
+.lang-toggle {
+  display: flex; align-items: center; gap: 5px;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 20px; padding: 5px 12px;
+  color: #fff; font-size: 11px; font-weight: 700;
+  cursor: pointer; transition: all 0.2s;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 1px;
+}
+.lang-toggle:hover {
+  background: rgba(245,200,66,0.15);
+  border-color: rgba(245,200,66,0.4);
+  color: var(--gold);
+}
