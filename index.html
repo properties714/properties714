@@ -183,10 +183,7 @@
     <div class="nav-item" onclick="nav('docs',this)"><span class="nav-icon">📄</span>Documents</div>
     <div class="nav-item" onclick="nav('settings',this)"><span class="nav-icon">⚙️</span>Settings</div>
   </div>
-  <div class="nav-group" id="admin-nav-group" style="display:none">
-    <div class="nav-group-label">Admin</div>
-    <div class="nav-item" id="admin-nav-item" onclick="nav('admin',this);loadAdminUsers()"><span class="nav-icon">🛡</span>Users <span id="pending-dot" class="notification-dot" style="display:none"></span></div>
-  </div>
+
 </nav>
 
 <main class="main">
@@ -298,18 +295,159 @@
           <div class="form-group"><div class="form-label">ZIP</div><input class="form-input" id="f-zip" placeholder="30309"></div>
         </div>
         <hr class="divider">
-        <div class="card-title" style="font-size:13px;margin-bottom:14px">Financial Inputs</div>
-        <div class="grid-2">
-          <div class="form-group"><div class="form-label">Asking Price ($) <span id="ask-zillow-badge" style="display:none;font-size:9px;background:rgba(0,106,255,0.15);color:#4d9fff;border:1px solid rgba(0,106,255,0.3);padding:2px 7px;border-radius:10px;margin-left:6px">📍 de Zillow</span></div><input class="form-input" id="f-ask" type="number" placeholder="210000"></div>
-          <div class="form-group"><div class="form-label">Rehab Est. ($)</div><input class="form-input" id="f-rehab" type="number" placeholder="60000"></div>
+
+        <!-- ── ADQUISICIÓN ── -->
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+          <div style="width:3px;height:16px;background:linear-gradient(180deg,var(--gold),var(--gold2));border-radius:2px"></div>
+          <div style="font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-family:'JetBrains Mono',monospace">Adquisición</div>
         </div>
         <div class="grid-2">
-          <div class="form-group"><div class="form-label">Closing Costs ($)</div><input class="form-input" id="f-close" type="number" placeholder="8000"></div>
-          <div class="form-group"><div class="form-label">Holding Costs ($)</div><input class="form-input" id="f-hold" type="number" placeholder="6000"></div>
+          <div class="form-group">
+            <div class="form-label">Asking Price <span id="ask-zillow-badge" style="display:none;font-size:9px;background:rgba(0,106,255,0.15);color:#4d9fff;border:1px solid rgba(0,106,255,0.3);padding:2px 7px;border-radius:10px;margin-left:4px">📍 Zillow</span></div>
+            <div style="position:relative"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-family:monospace">$</span><input class="form-input" id="f-ask" type="number" placeholder="210,000" style="padding-left:22px"></div>
+          </div>
+          <div class="form-group">
+            <div class="form-label">Rehab Estimado</div>
+            <div style="position:relative"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-family:monospace">$</span><input class="form-input" id="f-rehab" type="number" placeholder="60,000" style="padding-left:22px"></div>
+          </div>
         </div>
         <div class="grid-2">
-          <div class="form-group"><div class="form-label">Agent Fees (%)</div><div style="display:flex;align-items:center;gap:6px"><input class="form-input" id="f-agent" type="number" placeholder="3.0" step="0.5" min="0" max="10" style="flex:1"><span style="color:var(--muted);font-size:13px;white-space:nowrap">% del ARV</span></div></div>
-          <div class="form-group"><div class="form-label">Monthly Rent Est. ($)</div><input class="form-input" id="f-rent" type="number" placeholder="2200"></div>
+          <div class="form-group">
+            <div class="form-label">Closing Costs <span style="color:var(--muted);font-size:10px">(title, escrow...)</span></div>
+            <div style="position:relative"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-family:monospace">$</span><input class="form-input" id="f-close" type="number" placeholder="8,000" style="padding-left:22px"></div>
+          </div>
+          <div class="form-group">
+            <div class="form-label">Inspection Fee</div>
+            <div style="position:relative"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-family:monospace">$</span><input class="form-input" id="f-inspect" type="number" placeholder="500" style="padding-left:22px"></div>
+          </div>
+        </div>
+
+        <!-- ── HOLDING ── -->
+        <div style="display:flex;align-items:center;gap:8px;margin:14px 0 12px">
+          <div style="width:3px;height:16px;background:linear-gradient(180deg,#5b9fff,#4d7fff);border-radius:2px"></div>
+          <div style="font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--blue);font-family:'JetBrains Mono',monospace">Holding Costs</div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <div class="form-label">Meses de Holding</div>
+            <select class="form-input" id="f-months">
+              <option value="3">3 meses</option>
+              <option value="4">4 meses</option>
+              <option value="5">5 meses</option>
+              <option value="6" selected>6 meses</option>
+              <option value="8">8 meses</option>
+              <option value="12">12 meses</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <div class="form-label">Holding / mes <span style="color:var(--muted);font-size:10px">(utilities, seguro...)</span></div>
+            <div style="position:relative"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-family:monospace">$</span><input class="form-input" id="f-hold" type="number" placeholder="1,000" style="padding-left:22px" oninput="updateHoldingTotal()"></div>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <div class="form-label">Property Tax / año</div>
+            <div style="position:relative"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-family:monospace">$</span><input class="form-input" id="f-tax" type="number" placeholder="3,600" style="padding-left:22px"></div>
+          </div>
+          <div class="form-group">
+            <div class="form-label">HOA / mes <span style="color:var(--muted);font-size:10px">(si aplica)</span></div>
+            <div style="position:relative"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-family:monospace">$</span><input class="form-input" id="f-hoa" type="number" placeholder="0" style="padding-left:22px"></div>
+          </div>
+        </div>
+        <!-- Holding Total Badge -->
+        <div id="holding-total-badge" style="background:rgba(91,159,255,0.08);border:1px solid rgba(91,159,255,0.2);border-radius:8px;padding:10px 14px;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:11px;color:var(--muted)">Holding Total Estimado</span>
+          <span id="holding-total-val" style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--blue)">$6,000</span>
+        </div>
+
+        <!-- ── VENTA ── -->
+        <div style="display:flex;align-items:center;gap:8px;margin:14px 0 12px">
+          <div style="width:3px;height:16px;background:linear-gradient(180deg,var(--green),#12c070);border-radius:2px"></div>
+          <div style="font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--green);font-family:'JetBrains Mono',monospace">Costos de Venta</div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <div class="form-label">Agent Fees <span style="color:var(--muted);font-size:10px">(% del ARV)</span></div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <input class="form-input" id="f-agent" type="number" placeholder="3.0" step="0.5" min="0" max="10" style="flex:1">
+              <span style="color:var(--muted);font-size:12px;white-space:nowrap;font-family:monospace">%</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="form-label">Staging / Marketing</div>
+            <div style="position:relative"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-family:monospace">$</span><input class="form-input" id="f-staging" type="number" placeholder="2,000" style="padding-left:22px"></div>
+          </div>
+        </div>
+
+        <!-- ── RENTA ── -->
+        <div style="display:flex;align-items:center;gap:8px;margin:14px 0 12px">
+          <div style="width:3px;height:16px;background:linear-gradient(180deg,var(--purple,#a78bfa),#8b6ff0);border-radius:2px"></div>
+          <div style="font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#a78bfa;font-family:'JetBrains Mono',monospace">Renta / Cashflow</div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <div class="form-label">Renta Mensual Est.</div>
+            <div style="position:relative"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-family:monospace">$</span><input class="form-input" id="f-rent" type="number" placeholder="2,200" style="padding-left:22px"></div>
+          </div>
+          <div class="form-group">
+            <div class="form-label">Vacancia <span style="color:var(--muted);font-size:10px">(%)</span></div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <input class="form-input" id="f-vacancy" type="number" placeholder="8" step="1" min="0" max="30" style="flex:1">
+              <span style="color:var(--muted);font-size:12px;font-family:monospace">%</span>
+            </div>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <div class="form-label">Mgmt Fee <span style="color:var(--muted);font-size:10px">(%)</span></div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <input class="form-input" id="f-mgmt" type="number" placeholder="10" step="1" min="0" max="20" style="flex:1">
+              <span style="color:var(--muted);font-size:12px;font-family:monospace">%</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="form-label">Seguro / mes</div>
+            <div style="position:relative"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-family:monospace">$</span><input class="form-input" id="f-insure" type="number" placeholder="150" style="padding-left:22px"></div>
+          </div>
+        </div>
+
+        <!-- ── FINANCIAMIENTO ── -->
+        <div style="display:flex;align-items:center;gap:8px;margin:14px 0 12px">
+          <div style="width:3px;height:16px;background:linear-gradient(180deg,var(--amber),#ff8800);border-radius:2px"></div>
+          <div style="font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--amber);font-family:'JetBrains Mono',monospace">Financiamiento</div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <div class="form-label">Down Payment <span style="color:var(--muted);font-size:10px">(%)</span></div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <input class="form-input" id="f-down" type="number" placeholder="20" step="5" min="0" max="100" style="flex:1">
+              <span style="color:var(--muted);font-size:12px;font-family:monospace">%</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="form-label">Tasa de Interés <span style="color:var(--muted);font-size:10px">(%)</span></div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <input class="form-input" id="f-rate" type="number" placeholder="7.5" step="0.25" min="0" max="20" style="flex:1">
+              <span style="color:var(--muted);font-size:12px;font-family:monospace">%</span>
+            </div>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <div class="form-label">Plazo del Préstamo</div>
+            <select class="form-input" id="f-term">
+              <option value="15">15 años</option>
+              <option value="20">20 años</option>
+              <option value="30" selected>30 años</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <div class="form-label">Hard Money Points <span style="color:var(--muted);font-size:10px">(%)</span></div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <input class="form-input" id="f-points" type="number" placeholder="2" step="0.5" min="0" max="10" style="flex:1">
+              <span style="color:var(--muted);font-size:12px;font-family:monospace">pts</span>
+            </div>
+          </div>
         </div>
       </div>
       <!-- Zillow Link -->
@@ -543,6 +681,87 @@
 </div>
 
 <!-- ══════════ ADMIN — USER MANAGEMENT ══════════ -->
+<div id="page-admin-dashboard" class="page">
+  <div class="page-hd">
+    <div><div class="page-title">🛡 <span>Admin</span> Dashboard</div><div class="page-sub">Control total de la plataforma</div></div>
+    <button class="btn btn-ghost" onclick="loadAdminDashboard()">↻ Refresh</button>
+  </div>
+
+  <!-- TOP STATS -->
+  <div class="stats-row" style="grid-template-columns:repeat(4,1fr)">
+    <div class="stat" style="border-color:rgba(245,200,66,0.3)">
+      <div class="stat-label">Total Usuarios</div>
+      <div class="stat-val" id="ad-total-users">—</div>
+      <div class="stat-note">Registrados</div>
+    </div>
+    <div class="stat" style="border-color:rgba(255,170,51,0.3)">
+      <div class="stat-label">⏳ Pendientes</div>
+      <div class="stat-val" id="ad-pending" style="color:var(--amber)">—</div>
+      <div class="stat-note">Esperando aprobación</div>
+    </div>
+    <div class="stat" style="border-color:rgba(34,232,136,0.3)">
+      <div class="stat-label">✅ Activos</div>
+      <div class="stat-val" id="ad-active" style="color:var(--green)">—</div>
+      <div class="stat-note">Aprobados</div>
+    </div>
+    <div class="stat" style="border-color:rgba(91,159,255,0.3)">
+      <div class="stat-label">📊 Deals Totales</div>
+      <div class="stat-val" id="ad-deals" style="color:var(--blue)">—</div>
+      <div class="stat-note">Analizados</div>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:16px">
+    <!-- PENDING USERS — needs action -->
+    <div class="card">
+      <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
+        <span>⏳ Solicitudes Pendientes</span>
+        <span id="ad-pending-badge" class="badge badge-amber">0</span>
+      </div>
+      <div id="ad-pending-list">
+        <div class="empty" style="padding:20px"><div class="empty-icon" style="font-size:24px">✅</div><p>No hay solicitudes pendientes</p></div>
+      </div>
+    </div>
+
+    <!-- RECENT SIGNUPS -->
+    <div class="card">
+      <div class="card-title">👥 Usuarios Recientes</div>
+      <div id="ad-recent-users">
+        <div class="empty" style="padding:20px"><p>Cargando...</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:16px">
+    <!-- RECENT DEALS ACTIVITY -->
+    <div class="card">
+      <div class="card-title">⚡ Actividad Reciente — Deals</div>
+      <div id="ad-recent-deals">
+        <div class="empty" style="padding:20px"><p>Cargando...</p></div>
+      </div>
+    </div>
+
+    <!-- TOP USERS BY ACTIVITY -->
+    <div class="card">
+      <div class="card-title">🏆 Usuarios más Activos</div>
+      <div id="ad-top-users">
+        <div class="empty" style="padding:20px"><p>Cargando...</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALL PROPERTIES LOG -->
+  <div class="card">
+    <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
+      <span>📋 Log de Propiedades Analizadas</span>
+      <span id="ad-props-count" class="badge badge-blue">0</span>
+    </div>
+    <div id="ad-props-log">
+      <div class="empty" style="padding:20px"><p>Cargando...</p></div>
+    </div>
+  </div>
+</div>
+
 <div id="page-admin" class="page">
   <div class="page-hd">
     <div>
