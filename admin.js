@@ -3,9 +3,6 @@
 // ══════════════════════════════════════
 
 
-
-
-
 // ══════════════════════════════════════
 // ADMIN STATE
 // ══════════════════════════════════════
@@ -24,10 +21,7 @@ async function checkAdmin() {
 
   const { data } = await SB.auth.getUser();
 
-  if (!data?.user) {
-    window.location.href = "/";
-    return;
-  }
+  if (!data?.user) return;
 
   ADMIN_USER = data.user;
 
@@ -43,25 +37,35 @@ async function checkAdmin() {
 
 async function loadAdminStats() {
 
-  const { data: users } = await SB
-    .from("profiles")
-    .select("*");
+  try {
 
-  const { data: properties } = await SB
-    .from("properties")
-    .select("*");
+    const { data: users } = await SB
+      .from("user_profiles")
+      .select("*");
 
-  const { data: analysis } = await SB
-    .from("analysis")
-    .select("*");
+    const { data: properties } = await SB
+      .from("properties")
+      .select("*");
 
-  USERS = users || [];
-  PROPERTIES = properties || [];
-  ANALYSIS = analysis || [];
+    const { data: analysis } = await SB
+      .from("deal_analysis")
+      .select("*");
 
-  document.getElementById("stat-users").textContent = USERS.length;
-  document.getElementById("stat-properties").textContent = PROPERTIES.length;
-  document.getElementById("stat-analysis").textContent = ANALYSIS.length;
+    USERS = users || [];
+    PROPERTIES = properties || [];
+    ANALYSIS = analysis || [];
+
+    const statUsers = document.getElementById("stat-users");
+    const statProps = document.getElementById("stat-properties");
+    const statAnalysis = document.getElementById("stat-analysis");
+
+    if (statUsers) statUsers.textContent = USERS.length;
+    if (statProps) statProps.textContent = PROPERTIES.length;
+    if (statAnalysis) statAnalysis.textContent = ANALYSIS.length;
+
+  } catch(e) {
+    console.warn("Admin stats error:", e);
+  }
 
 }
 
@@ -72,16 +76,22 @@ async function loadAdminStats() {
 
 async function loadAdminUsers() {
 
-  const { data, error } = await SB
-    .from("profiles")
-    .select("*")
-    .order("created_at", { ascending:false });
+  try {
 
-  if (error) return;
+    const { data, error } = await SB
+      .from("user_profiles")
+      .select("*")
+      .order("created_at", { ascending:false });
 
-  USERS = data;
+    if (error) return;
 
-  renderUsers();
+    USERS = data || [];
+
+    renderUsers();
+
+  } catch(e) {
+    console.warn("Admin users error:", e);
+  }
 
 }
 
@@ -97,7 +107,7 @@ function renderUsers() {
     <tr>
       <td>${u.email || ""}</td>
       <td>${u.full_name || "-"}</td>
-      <td>${u.plan || "free"}</td>
+      <td>${u.role || "investor"}</td>
       <td>${new Date(u.created_at).toLocaleDateString()}</td>
     </tr>
   
@@ -112,17 +122,23 @@ function renderUsers() {
 
 async function loadAdminDeals() {
 
-  const { data, error } = await SB
-    .from("properties")
-    .select("*")
-    .order("created_at", { ascending:false })
-    .limit(50);
+  try {
 
-  if (error) return;
+    const { data, error } = await SB
+      .from("properties")
+      .select("*")
+      .order("created_at", { ascending:false })
+      .limit(50);
 
-  PROPERTIES = data;
+    if (error) return;
 
-  renderDeals();
+    PROPERTIES = data || [];
+
+    renderDeals();
+
+  } catch(e) {
+    console.warn("Admin deals error:", e);
+  }
 
 }
 
@@ -136,7 +152,7 @@ function renderDeals() {
   table.innerHTML = PROPERTIES.map(p => `
   
     <tr>
-      <td>${p.address}</td>
+      <td>${p.address || ""}</td>
       <td>${p.city || "-"}</td>
       <td>$${(p.asking_price || 0).toLocaleString()}</td>
       <td>${p.strategy_candidate || "-"}</td>
@@ -184,5 +200,9 @@ async function adminLogout() {
 // ══════════════════════════════════════
 
 document.addEventListener("DOMContentLoaded", () => {
-  checkAdmin();
+
+  if (typeof SB !== "undefined") {
+    checkAdmin();
+  }
+
 });
