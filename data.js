@@ -20,7 +20,7 @@ async function loadUserData() {
   try {
 
     // ── Load pipeline data from Supabase Edge Function ──
-    const pipelineRes = await fetch(API_PIPELINE, {
+    const pipelineRes = await fetch(API.pipeline, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
