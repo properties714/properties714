@@ -357,7 +357,7 @@ async function searchZillow(){
 
   try{
 
-    const res = await fetch(API_SEARCH,{
+    const res = await fetch(API.searchListings,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
