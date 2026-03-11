@@ -337,7 +337,7 @@ function delProp(id){
 //  INIT
 // ══════════════════════════════════════
 
-renderScripts();
+// renderScripts();
 renderDocs();
 
 
