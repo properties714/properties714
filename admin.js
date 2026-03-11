@@ -1,106 +1,192 @@
 // ══════════════════════════════════════
-// ADMIN API — Google Apps Script Backend
+// PROPERTIES714 — ADMIN PANEL
 // ══════════════════════════════════════
 
-// Spreadsheet donde guardas datos
-const SHEET_ID = "PUT_YOUR_SPREADSHEET_ID_HERE";
+// Supabase config (same project as main app)
+const SUPABASE_URL  = 'https://euvbddxunitgiqduckwf.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1dmJkZHh1bml0Z2lxZHVja3dmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4MjMyMDQsImV4cCI6MjA4ODM5OTIwNH0.Fq3UwLA_VCPaoA7fShgT8nCk9xXw1sNENoZ_jZyz6Qs';
 
-function doGet(e) {
+const { createClient } = supabase;
+const SB = createClient(SUPABASE_URL, SUPABASE_ANON);
 
-  const action = e.parameter.action;
 
-  if (action === "users") {
-    return jsonResponse(getUsers());
+// ══════════════════════════════════════
+// ADMIN STATE
+// ══════════════════════════════════════
+
+let ADMIN_USER = null;
+let USERS = [];
+let PROPERTIES = [];
+let ANALYSIS = [];
+
+
+// ══════════════════════════════════════
+// ADMIN LOGIN CHECK
+// ══════════════════════════════════════
+
+async function checkAdmin() {
+
+  const { data } = await SB.auth.getUser();
+
+  if (!data?.user) {
+    window.location.href = "/";
+    return;
   }
 
-  if (action === "properties") {
-    return jsonResponse(getProperties());
-  }
+  ADMIN_USER = data.user;
 
-  if (action === "stats") {
-    return jsonResponse(getStats());
-  }
-
-  return jsonResponse({ error: "Invalid action" });
+  loadAdminStats();
+  loadAdminUsers();
+  loadAdminDeals();
 }
 
+
 // ══════════════════════════════════════
-// USERS
+// LOAD ADMIN STATS
 // ══════════════════════════════════════
-function getUsers() {
 
-  const sheet = SpreadsheetApp
-    .openById(SHEET_ID)
-    .getSheetByName("users");
+async function loadAdminStats() {
 
-  const rows = sheet.getDataRange().getValues();
-  const headers = rows.shift();
+  const { data: users } = await SB
+    .from("profiles")
+    .select("*");
 
-  const users = rows.map(r => ({
-    id: r[0],
-    email: r[1],
-    name: r[2],
-    created_at: r[3],
-    plan: r[4],
-    status: r[5]
-  }));
+  const { data: properties } = await SB
+    .from("properties")
+    .select("*");
 
-  return users;
+  const { data: analysis } = await SB
+    .from("analysis")
+    .select("*");
+
+  USERS = users || [];
+  PROPERTIES = properties || [];
+  ANALYSIS = analysis || [];
+
+  document.getElementById("stat-users").textContent = USERS.length;
+  document.getElementById("stat-properties").textContent = PROPERTIES.length;
+  document.getElementById("stat-analysis").textContent = ANALYSIS.length;
+
 }
 
+
 // ══════════════════════════════════════
-// PROPERTIES
+// LOAD USERS
 // ══════════════════════════════════════
-function getProperties() {
 
-  const sheet = SpreadsheetApp
-    .openById(SHEET_ID)
-    .getSheetByName("properties");
+async function loadAdminUsers() {
 
-  const rows = sheet.getDataRange().getValues();
-  const headers = rows.shift();
+  const { data, error } = await SB
+    .from("profiles")
+    .select("*")
+    .order("created_at", { ascending:false });
 
-  const props = rows.map(r => ({
-    id: r[0],
-    address: r[1],
-    city: r[2],
-    asking_price: r[3],
-    arv: r[4],
-    strategy: r[5],
-    created_at: r[6]
-  }));
+  if (error) return;
 
-  return props;
+  USERS = data;
+
+  renderUsers();
+
 }
 
-// ══════════════════════════════════════
-// STATS
-// ══════════════════════════════════════
-function getStats() {
 
-  const ss = SpreadsheetApp.openById(SHEET_ID);
+function renderUsers() {
 
-  const usersSheet = ss.getSheetByName("users");
-  const propsSheet = ss.getSheetByName("properties");
+  const table = document.getElementById("users-table");
 
-  const users = usersSheet.getLastRow() - 1;
-  const properties = propsSheet.getLastRow() - 1;
+  if (!table) return;
 
-  const stats = {
-    total_users: users,
-    total_properties: properties,
-    monthly_revenue: users * 49,
-    active_users: users
-  };
+  table.innerHTML = USERS.map(u => `
+  
+    <tr>
+      <td>${u.email || ""}</td>
+      <td>${u.full_name || "-"}</td>
+      <td>${u.plan || "free"}</td>
+      <td>${new Date(u.created_at).toLocaleDateString()}</td>
+    </tr>
+  
+  `).join("");
 
-  return stats;
 }
 
+
 // ══════════════════════════════════════
-// JSON RESPONSE
+// LOAD DEALS
 // ══════════════════════════════════════
-function jsonResponse(data) {
-  return ContentService
-    .createTextOutput(JSON.stringify(data))
-    .setMimeType(ContentService.MimeType.JSON);
+
+async function loadAdminDeals() {
+
+  const { data, error } = await SB
+    .from("properties")
+    .select("*")
+    .order("created_at", { ascending:false })
+    .limit(50);
+
+  if (error) return;
+
+  PROPERTIES = data;
+
+  renderDeals();
+
 }
+
+
+function renderDeals() {
+
+  const table = document.getElementById("deals-table");
+
+  if (!table) return;
+
+  table.innerHTML = PROPERTIES.map(p => `
+  
+    <tr>
+      <td>${p.address}</td>
+      <td>${p.city || "-"}</td>
+      <td>$${(p.asking_price || 0).toLocaleString()}</td>
+      <td>${p.strategy_candidate || "-"}</td>
+      <td>${new Date(p.created_at).toLocaleDateString()}</td>
+    </tr>
+  
+  `).join("");
+
+}
+
+
+// ══════════════════════════════════════
+// DELETE PROPERTY
+// ══════════════════════════════════════
+
+async function deleteProperty(id) {
+
+  if (!confirm("Delete property?")) return;
+
+  await SB
+    .from("properties")
+    .delete()
+    .eq("id", id);
+
+  loadAdminDeals();
+
+}
+
+
+// ══════════════════════════════════════
+// SIGN OUT
+// ══════════════════════════════════════
+
+async function adminLogout() {
+
+  await SB.auth.signOut();
+
+  window.location.href = "/";
+
+}
+
+
+// ══════════════════════════════════════
+// INIT
+// ══════════════════════════════════════
+
+document.addEventListener("DOMContentLoaded", () => {
+  checkAdmin();
+});
