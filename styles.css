@@ -1,3 +1,4 @@
+<style>
 :root {
   --bg: #08080d;
   --surface: #0f0f18;
@@ -276,4 +277,14 @@ to{opacity:1;transform:none}
 .main{margin-left:0;padding:20px}
 .sidebar{display:none}
 }
+
+/* ── LOGO 714 ── */
+
+.logo-714{
+background:linear-gradient(135deg,#f5c842,#ffd966);
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+font-weight:900;
+}
+
 </style>
