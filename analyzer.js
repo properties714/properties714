@@ -233,7 +233,7 @@ async function analyzeDeal() {
 
   let result;
   try {
-    const res = await fetch(N8N_ANALYZE, {
+    const res = await fetch(API.analyzeDeal, {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ address:addr, city, state:'GA', zip, asking_price:purchase, estimated_rehab:rehab, closing_costs:closing, holding_cost:holding, agent_fees:agent, estimated_rent:rent, comparables:comps, exit_strategies:[...SELECTED_EXITS], zillow_url: document.getElementById('f-zillow').value.trim(), user_id: CURRENT_USER?.id || null })
     });
