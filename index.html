@@ -16,76 +16,41 @@
 
 <link rel="stylesheet" href="styles.css">
 
-<style>
-
-header{
-background:#0a0c18;
-border-bottom:2px solid #f5c842
-}
-
-.logo{
-color:#fff;
-font-size:16px
-}
-
-.logo-badge{
-background:linear-gradient(135deg,#f5c842,#ffd966);
-color:#000;
-font-weight:900;
-padding:4px 10px;
-border-radius:5px;
-box-shadow:0 0 16px rgba(245,200,66,.7);
-font-size:10px;
-letter-spacing:1.5px
-}
-
-.header-status{
-color:#fff;
-font-weight:700;
-font-size:12px
-}
-
-.user-email{
-color:#fff;
-font-weight:600
-}
-
-.user-logout{
-color:#ff5c5c;
-border:1px solid rgba(255,92,92,.5);
-background:rgba(255,92,92,.12);
-font-weight:700;
-padding:5px 12px
-}
-
-.btn-gold{
-background:linear-gradient(135deg,#f5c842,#ffd966);
-color:#000;
-font-weight:800;
-box-shadow:0 0 20px rgba(245,200,66,.5);
-border:1px solid #ffd84d
-}
-
-.user-avatar{
-background:linear-gradient(135deg,#f5c842,#ffd966);
-color:#000;
-font-weight:900
-}
-
-</style>
-
 </head>
+
 
 <body>
 
-<!-- AUTH SCREEN -->
-<div id="auth-screen"></div>
 
-<!-- PENDING SCREEN -->
-<div id="pending-screen"></div>
+<!-- ================= AUTH SCREEN ================= -->
 
-<!-- MAIN APP -->
+<div id="auth-screen" style="display:flex;align-items:center;justify-content:center;height:100vh">
+
+<div style="width:340px;background:#0e1020;padding:30px;border-radius:10px">
+
+<h2 style="margin-bottom:15px;color:#fff">Properties714</h2>
+
+<input id="login-email" placeholder="Email"
+style="width:100%;margin-bottom:10px;padding:10px;border-radius:6px;border:1px solid #333;background:#111;color:#fff">
+
+<input id="login-pass" type="password" placeholder="Password"
+style="width:100%;margin-bottom:10px;padding:10px;border-radius:6px;border:1px solid #333;background:#111;color:#fff">
+
+<button onclick="doLogin()" style="width:100%;padding:10px;background:#f5c842;border:0;border-radius:6px;font-weight:bold">
+Sign In
+</button>
+
+<div id="login-error" style="color:red;margin-top:10px;display:none"></div>
+
+</div>
+</div>
+
+
+
+<!-- ================= MAIN APP ================= -->
+
 <div id="main-app" style="display:none">
+
 
 <header>
 
@@ -94,35 +59,24 @@ Properties<span class="logo-714">714</span>
 <span class="logo-badge">PRO</span>
 </div>
 
-<div style="display:flex;align-items:center;gap:12px">
-
-<div class="header-status">
-<span class="pulse"></span>
-<span data-t="system_online">System Online</span>
-</div>
-
-<button class="lang-toggle" onclick="toggleLang()" id="lang-btn">
-<span id="lang-flag">🇲🇽</span>
-<span id="lang-label">ES</span>
-</button>
-
 <div class="user-menu">
 
 <div class="user-avatar" id="user-avatar-initials">?</div>
 
 <div class="user-email" id="user-email-display"></div>
 
-<button class="user-logout" onclick="doLogout()">
-Sign Out
-</button>
-
-</div>
+<button class="user-logout" onclick="doLogout()">Sign Out</button>
 
 </div>
 
 </header>
 
+
+
 <div class="app">
+
+
+<!-- SIDEBAR -->
 
 <nav class="sidebar">
 
@@ -136,6 +90,7 @@ Sign Out
 
 </div>
 
+
 <div class="nav-group">
 
 <div class="nav-group-label">Analysis</div>
@@ -148,6 +103,7 @@ Sign Out
 
 </div>
 
+
 <div class="nav-group">
 
 <div class="nav-group-label">Network</div>
@@ -159,6 +115,7 @@ Sign Out
 <div class="nav-item" onclick="nav('listings',this)">Listings</div>
 
 </div>
+
 
 <div class="nav-group">
 
@@ -174,20 +131,36 @@ Sign Out
 
 </nav>
 
+
+
+<!-- MAIN CONTENT -->
+
 <main class="main">
 
 <div id="page-dashboard" class="page active"></div>
+
 <div id="page-pipeline" class="page"></div>
+
 <div id="page-analyzer" class="page"></div>
+
 <div id="page-repairs" class="page"></div>
+
 <div id="page-properties" class="page"></div>
+
 <div id="page-crm" class="page"></div>
+
 <div id="page-lenders" class="page"></div>
+
 <div id="page-listings" class="page"></div>
+
 <div id="page-scripts" class="page"></div>
+
 <div id="page-docs" class="page"></div>
+
 <div id="page-settings" class="page"></div>
+
 <div id="page-admin-dashboard" class="page"></div>
+
 <div id="page-admin" class="page"></div>
 
 </main>
@@ -196,17 +169,23 @@ Sign Out
 
 </div>
 
-<!-- MODALS -->
+
+
+<!-- ================= MODALS ================= -->
 
 <div class="modal-overlay" id="modal-contact"></div>
 <div class="modal-overlay" id="modal-lender"></div>
 <div class="modal-overlay" id="modal-listing"></div>
 
-<!-- PASSWORD RESET -->
+
+
+<!-- ================= PASSWORD RESET ================= -->
 
 <div id="reset-password-overlay"></div>
 
-<!-- SCRIPTS (SOLO UNA VEZ Y EN ORDEN) -->
+
+
+<!-- ================= SCRIPTS ================= -->
 
 <script src="config.js"></script>
 <script src="data.js"></script>
@@ -219,12 +198,6 @@ Sign Out
 <script src="admin.js"></script>
 <script src="lang.js"></script>
 
-<!-- FUTURE MODULES -->
-
-<!--
-<script src="ai.js"></script>
-<script src="billing.js"></script>
--->
 
 </body>
 </html>
