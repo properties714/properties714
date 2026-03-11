@@ -3,8 +3,7 @@
 // ══════════════════════════════════════
 
 
-const { createClient } = supabase;
-const SB = createClient(SUPABASE_URL, SUPABASE_ANON);
+
 
 
 // ══════════════════════════════════════
