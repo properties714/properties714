@@ -390,6 +390,12 @@ async function handleUser(user){
 
   if(profile.approval_status==='approved'){
 
+    // Admin always gets in regardless of subscription
+    if(profile.role==='admin'){
+      enterApp(user,profile);
+      return;
+    }
+
     const sub=
       profile.subscription_status||'inactive';
 
