@@ -2,93 +2,92 @@
 //  AUTH SCREENS
 // ══════════════════════════════════════
 
-function showScreen(name) {
+function showScreen(name){
 
-  document.getElementById('auth-screen').style.display =
-    name === 'auth' ? 'flex' : 'none';
+  const auth = document.getElementById('auth-screen');
+  const pending = document.getElementById('pending-screen');
+  const app = document.getElementById('main-app');
 
-  document.getElementById('pending-screen').style.display =
-    name === 'pending' ? 'flex' : 'none';
-
-  document.getElementById('main-app').style.display =
-    name === 'app' ? 'block' : 'none';
+  if(auth) auth.style.display = name === 'auth' ? 'flex' : 'none';
+  if(pending) pending.style.display = name === 'pending' ? 'flex' : 'none';
+  if(app) app.style.display = name === 'app' ? 'block' : 'none';
 }
 
 
 // ══════════════════════════════════════
-//  PASSWORD RESET
+// PASSWORD RESET
 // ══════════════════════════════════════
 
-function showResetPasswordModal() {
+function showResetPasswordModal(){
 
   const overlay = document.getElementById('reset-password-overlay');
+  if(!overlay) return;
 
   overlay.style.display = 'flex';
 
-  document.getElementById('auth-screen').style.display = 'none';
+  const auth = document.getElementById('auth-screen');
+  if(auth) auth.style.display = 'none';
 }
 
 
-async function doResetPassword() {
+async function doResetPassword(){
 
-  const p1  = document.getElementById('reset-pass1').value;
-  const p2  = document.getElementById('reset-pass2').value;
+  const p1 = document.getElementById('reset-pass1').value;
+  const p2 = document.getElementById('reset-pass2').value;
 
   const err = document.getElementById('reset-error');
   const suc = document.getElementById('reset-success');
-
   const btn = document.getElementById('reset-btn');
 
-  err.style.display = 'none';
+  err.style.display='none';
 
-  if (!p1 || !p2) {
-
-    err.textContent = 'Please fill both fields.';
-    err.style.display = 'block';
+  if(!p1 || !p2){
+    err.textContent='Please fill both fields.';
+    err.style.display='block';
     return;
   }
 
-  if (p1 !== p2) {
-
-    err.textContent = 'Passwords do not match.';
-    err.style.display = 'block';
+  if(p1!==p2){
+    err.textContent='Passwords do not match.';
+    err.style.display='block';
     return;
   }
 
-  if (p1.length < 6) {
-
-    err.textContent = 'Minimum 6 characters.';
-    err.style.display = 'block';
+  if(p1.length<6){
+    err.textContent='Minimum 6 characters.';
+    err.style.display='block';
     return;
   }
 
-  btn.textContent = 'Updating...';
-  btn.disabled = true;
+  btn.disabled=true;
+  btn.textContent='Updating...';
 
-  const { data, error } = await SB.auth.updateUser({
-    password: p1
-  });
+  const {data,error} =
+    await SB.auth.updateUser({password:p1});
 
-  btn.textContent = 'Update Password →';
-  btn.disabled = false;
+  btn.disabled=false;
+  btn.textContent='Update Password →';
 
-  if (error) {
+  if(error){
 
-    err.textContent = error.message;
-    err.style.display = 'block';
+    err.textContent=error.message;
+    err.style.display='block';
 
-  } else {
+  }else{
 
-    suc.style.display = 'block';
-    btn.style.display = 'none';
+    suc.style.display='block';
+    btn.style.display='none';
 
-    setTimeout(() => {
+    setTimeout(()=>{
 
       history.replaceState(null,'',window.location.pathname);
 
-      document.getElementById('reset-password-overlay').style.display = 'none';
+      const overlay =
+        document.getElementById('reset-password-overlay');
 
-      if (data?.user)
+      if(overlay) overlay.style.display='none';
+
+      if(data?.user)
         handleUser(data.user);
       else
         showScreen('auth');
@@ -99,23 +98,17 @@ async function doResetPassword() {
 
 
 // ══════════════════════════════════════
-//  FORGOT PASSWORD
+// FORGOT PASSWORD
 // ══════════════════════════════════════
 
 function showForgotPassword(){
 
-  document.getElementById('form-login').style.display = 'none';
-  document.getElementById('form-register').style.display = 'none';
-  document.getElementById('form-forgot').style.display = 'block';
+  document.getElementById('form-login').style.display='none';
+  document.getElementById('form-register').style.display='none';
+  document.getElementById('form-forgot').style.display='block';
 
-  document.getElementById('forgot-error').style.display = 'none';
-  document.getElementById('forgot-success').style.display = 'none';
-
-  const loginEmail =
-    document.getElementById('login-email').value;
-
-  if (loginEmail)
-    document.getElementById('forgot-email').value = loginEmail;
+  document.getElementById('forgot-error').style.display='none';
+  document.getElementById('forgot-success').style.display='none';
 }
 
 
@@ -124,66 +117,62 @@ async function doForgotPassword(){
   const email =
     document.getElementById('forgot-email').value.trim();
 
-  const errEl =
+  const err =
     document.getElementById('forgot-error');
 
-  const sucEl =
+  const suc =
     document.getElementById('forgot-success');
 
   const btn =
     document.getElementById('forgot-btn');
 
-  errEl.style.display='none';
-  sucEl.style.display='none';
+  err.style.display='none';
+  suc.style.display='none';
 
-  if (!email){
-
-    errEl.textContent='Please enter your email.';
-    errEl.style.display='block';
+  if(!email){
+    err.textContent='Please enter your email.';
+    err.style.display='block';
     return;
   }
 
-  btn.textContent='Sending...';
   btn.disabled=true;
+  btn.textContent='Sending...';
 
-  const { error } =
+  const {error} =
     await SB.auth.resetPasswordForEmail(email,{
-      redirectTo: window.location.origin + window.location.pathname
+      redirectTo:window.location.origin+window.location.pathname
     });
 
-  btn.textContent='Send Reset Link →';
   btn.disabled=false;
+  btn.textContent='Send Reset Link →';
 
-  if (error){
-
-    errEl.textContent=error.message;
-    errEl.style.display='block';
-
-  } else {
-
-    sucEl.style.display='block';
+  if(error){
+    err.textContent=error.message;
+    err.style.display='block';
+  }else{
+    suc.style.display='block';
     btn.style.display='none';
   }
 }
 
 
 // ══════════════════════════════════════
-//  LOGIN / REGISTER
+// LOGIN / REGISTER
 // ══════════════════════════════════════
 
 function switchAuthTab(tab){
 
   document.getElementById('tab-login')
-    .classList.toggle('active', tab==='login');
+    .classList.toggle('active',tab==='login');
 
   document.getElementById('tab-register')
-    .classList.toggle('active', tab==='register');
+    .classList.toggle('active',tab==='register');
 
   document.getElementById('form-login').style.display =
-    tab==='login' ? 'flex' : 'none';
+    tab==='login'?'flex':'none';
 
   document.getElementById('form-register').style.display =
-    tab==='register' ? 'flex' : 'none';
+    tab==='register'?'flex':'none';
 }
 
 
@@ -197,37 +186,35 @@ async function doLogin(){
   const pass =
     document.getElementById('login-pass').value;
 
-  const errEl =
+  const err =
     document.getElementById('login-error');
 
   const btn =
     document.getElementById('login-btn');
 
-  errEl.style.display='none';
+  err.style.display='none';
 
-  if (!email || !pass){
-
-    errEl.textContent='Enter email and password.';
-    errEl.style.display='block';
+  if(!email||!pass){
+    err.textContent='Enter email and password.';
+    err.style.display='block';
     return;
   }
 
   btn.disabled=true;
   btn.textContent='Signing in...';
 
-  const { data, error } =
+  const {data,error} =
     await SB.auth.signInWithPassword({
       email,
-      password: pass
+      password:pass
     });
 
   btn.disabled=false;
   btn.textContent='Sign In →';
 
-  if (error){
-
-    errEl.textContent=error.message;
-    errEl.style.display='block';
+  if(error){
+    err.textContent=error.message;
+    err.style.display='block';
     return;
   }
 
@@ -248,73 +235,66 @@ async function doRegister(){
   const pass =
     document.getElementById('reg-pass').value;
 
-  const errEl =
+  const err =
     document.getElementById('reg-error');
 
-  const sucEl =
+  const suc =
     document.getElementById('reg-success');
 
   const btn =
     document.getElementById('reg-btn');
 
-  errEl.style.display='none';
-  sucEl.style.display='none';
+  err.style.display='none';
+  suc.style.display='none';
 
-  if (!name || !email || !pass){
-
-    errEl.textContent='All fields required.';
-    errEl.style.display='block';
+  if(!name||!email||!pass){
+    err.textContent='All fields required.';
+    err.style.display='block';
     return;
   }
 
-  if (pass.length < 6){
-
-    errEl.textContent='Password must be at least 6 characters.';
-    errEl.style.display='block';
+  if(pass.length<6){
+    err.textContent='Password must be at least 6 characters.';
+    err.style.display='block';
     return;
   }
 
   btn.disabled=true;
   btn.textContent='Sending request...';
 
-  const { data, error } =
+  const {data,error} =
     await SB.auth.signUp({
       email,
-      password: pass,
-      options:{
-        data:{
-          full_name:name
-        }
-      }
+      password:pass,
+      options:{data:{full_name:name}}
     });
 
   btn.disabled=false;
   btn.textContent='Request Access →';
 
-  if (error){
-
-    errEl.textContent=error.message;
-    errEl.style.display='block';
+  if(error){
+    err.textContent=error.message;
+    err.style.display='block';
     return;
   }
 
-  sucEl.style.display='block';
+  suc.style.display='block';
 
-  if (data.session)
+  if(data.session)
     await handleUser(data.user);
 }
 
 
 // ══════════════════════════════════════
-//  LOGOUT
+// LOGOUT
 // ══════════════════════════════════════
 
 async function doLogout(){
 
   await SB.auth.signOut();
 
-  CURRENT_USER = null;
-  CURRENT_PROFILE = null;
+  CURRENT_USER=null;
+  CURRENT_PROFILE=null;
 
   DB.properties=[];
   DB.analysis=[];
@@ -325,139 +305,136 @@ async function doLogout(){
 
 
 // ══════════════════════════════════════
-//  USER ROUTING
+// USER ROUTING (FIXED)
 // ══════════════════════════════════════
 
 async function handleUser(user){
 
-  if (!user){
-
+  if(!user){
     showScreen('auth');
     return;
   }
 
-  CURRENT_USER = user;
+  CURRENT_USER=user;
 
-  let { data: profile } =
+  let {data:profile,error} =
     await SB.from('user_profiles')
       .select('*')
-      .eq('id', user.id)
-      .single();
+      .eq('id',user.id)
+      .maybeSingle();
 
 
-  // ── CREATE PROFILE IF MISSING
+  // CREATE PROFILE IF NOT EXISTS
 
-  if (!profile){
+  if(!profile){
 
-    await SB.from('user_profiles').insert({
-
-      id: user.id,
-      email: user.email,
-      full_name: user.user_metadata?.full_name || '',
-      role: 'investor',
-      approval_status: 'pending',
-      subscription_status: 'inactive'
-
-    });
-
-    const { data: fresh } =
+    const {data:newProfile,error:insertError} =
       await SB.from('user_profiles')
-        .select('*')
-        .eq('id', user.id)
+        .insert({
+          id:user.id,
+          email:user.email,
+          full_name:user.user_metadata?.full_name||'',
+          role:'investor',
+          approval_status:'pending',
+          subscription_status:'inactive'
+        })
+        .select()
         .single();
 
-    profile = fresh;
+    if(insertError){
+      console.error(insertError);
+      showScreen('auth');
+      return;
+    }
+
+    profile=newProfile;
   }
 
-  CURRENT_PROFILE = profile;
+  CURRENT_PROFILE=profile;
 
 
-  // ── PENDING
+  // PENDING
 
-  if (profile.approval_status === 'pending'){
+  if(profile.approval_status==='pending'){
 
-    const emailEl =
+    const email =
       document.getElementById('pending-email-show');
 
-    if (emailEl)
-      emailEl.textContent = user.email;
+    if(email) email.textContent=user.email;
 
     showScreen('pending');
-
     return;
   }
 
 
-  // ── REJECTED
+  // REJECTED
 
-  if (profile.approval_status === 'rejected'){
+  if(profile.approval_status==='rejected'){
 
     await SB.auth.signOut();
 
-    const errEl =
+    const err =
       document.getElementById('login-error');
 
-    errEl.textContent =
-      'Your access request was not approved.';
-
-    errEl.style.display='block';
+    if(err){
+      err.textContent='Your access request was not approved.';
+      err.style.display='block';
+    }
 
     showScreen('auth');
-
     return;
   }
 
 
-  // ── APPROVED
+  // APPROVED
 
-  if (profile.approval_status === 'approved'){
+  if(profile.approval_status==='approved'){
 
-    const sub =
-      profile.subscription_status || 'inactive';
+    const sub=
+      profile.subscription_status||'inactive';
 
-    if (sub === 'active' || sub === 'trial'){
-
-      enterApp(user, profile);
+    if(sub==='active'||sub==='trial'){
+      enterApp(user,profile);
       return;
     }
 
     showScreen('auth');
 
-    const errEl =
+    const err =
       document.getElementById('login-error');
 
-    errEl.textContent =
-      'Your account is approved but no active subscription found.';
-
-    errEl.style.display='block';
-
-    return;
+    if(err){
+      err.textContent='Account approved but subscription inactive.';
+      err.style.display='block';
+    }
   }
-
 }
 
 
 // ══════════════════════════════════════
-//  ENTER APP
+// ENTER APP
 // ══════════════════════════════════════
 
-function enterApp(user, profile){
+function enterApp(user,profile){
 
-  CURRENT_USER = user;
-  CURRENT_PROFILE = profile;
+  CURRENT_USER=user;
+  CURRENT_PROFILE=profile;
 
   showScreen('app');
 
   const initials =
-    (profile?.full_name || user.email || 'U')
+    (profile?.full_name||user.email||'U')
       .substring(0,2)
       .toUpperCase();
 
-  document.getElementById('user-avatar-initials').textContent =
-    initials;
+  const avatar =
+    document.getElementById('user-avatar-initials');
 
-  document.getElementById('user-email-display').textContent =
-    user.email;
+  const email =
+    document.getElementById('user-email-display');
+
+  if(avatar) avatar.textContent=initials;
+  if(email) email.textContent=user.email;
 
   loadUserData();
   renderDashboard();
@@ -465,14 +442,13 @@ function enterApp(user, profile){
 
 
 // ══════════════════════════════════════
-//  SESSION CHECK
+// SESSION CHECK
 // ══════════════════════════════════════
 
-SB.auth.getSession().then(({ data:{ session } })=>{
+SB.auth.getSession().then(({data:{session}})=>{
 
-  if (session)
+  if(session)
     handleUser(session.user);
-
   else
     showScreen('auth');
 
@@ -481,40 +457,43 @@ SB.auth.getSession().then(({ data:{ session } })=>{
 
 SB.auth.onAuthStateChange((_event,session)=>{
 
-  if (_event === 'PASSWORD_RECOVERY'){
-
+  if(_event==='PASSWORD_RECOVERY'){
     showResetPasswordModal();
     return;
   }
 
-  if (_event === 'SIGNED_IN' && session && !CURRENT_USER)
+  if(_event==='SIGNED_IN'&&session&&!CURRENT_USER)
     handleUser(session.user);
 
-  if (_event === 'SIGNED_OUT'){
+  if(_event==='SIGNED_OUT'){
 
-    CURRENT_USER = null;
-    CURRENT_PROFILE = null;
+    CURRENT_USER=null;
+    CURRENT_PROFILE=null;
 
     showScreen('auth');
   }
-
 });
 
 
 // ══════════════════════════════════════
-//  RESET TOKEN DETECTION
+// RESET TOKEN DETECTION
 // ══════════════════════════════════════
 
-(function checkResetToken(){
+(function(){
 
-  const hash = window.location.hash;
+  const hash=window.location.hash;
 
-  if (hash && hash.includes('type=recovery')){
+  if(hash&&hash.includes('type=recovery')){
 
-    window._resetMode = true;
+    window._resetMode=true;
 
-    document.getElementById('auth-screen').style.display='none';
+    const auth=
+      document.getElementById('auth-screen');
 
+    if(auth) auth.style.display='none';
   }
+
+  if(hash==='#')
+    history.replaceState(null,'',window.location.pathname);
 
 })();
