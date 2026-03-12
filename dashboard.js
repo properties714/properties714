@@ -46,7 +46,6 @@ page.innerHTML = `
 <button class="btn btn-gold" onclick="nav('analyzer',null)">⚡ Analyze Deal</button>
 </div>
 
-```
   <!-- Stats -->
   <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px" id="stats-grid">
     <div class="card">
@@ -82,7 +81,6 @@ page.innerHTML = `
       <div id="db-strats"></div>
     </div>
   </div>`;
-```
 
 }
 
@@ -95,7 +93,7 @@ if (strat)  strat.innerHTML  = ‘<div style="padding:30px;text-align:center;col
 return;
 }
 
-const sorted = […DB.properties].sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)).slice(0, 5);
+const sorted = [...DB.properties].sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)).slice(0, 5);
 
 if (recent) {
 recent.innerHTML = sorted.map(p => {
@@ -171,7 +169,7 @@ tbody.innerHTML = ‘<tr><td colspan="8" style="padding:40px;text-align:center;c
 return;
 }
 
-const sc = s => s >= 70 ? ‘var(–green)’ : s >= 45 ? ‘var(–amber)’ : ‘var(–red)’;
+const sc = s => s >= 70 ? ‘var(--green)’ : s >= 45 ? ‘var(--amber)’ : ‘var(--red)’;
 const rb = r => r === ‘GOOD DEAL’ ? ‘badge-green’ : r === ‘MARGINAL DEAL’ ? ‘badge-amber’ : ‘badge-red’;
 
 tbody.innerHTML = DB.properties.map(p => {
@@ -205,11 +203,11 @@ const status = document.getElementById(‘zs-status’);
 const loading = document.getElementById(‘zs-loading’);
 
 if (!zip && !city) {
-if (status) { status.style.display = ‘block’; status.style.color = ‘var(–amber)’; status.textContent = ‘⚠ Enter ZIP or City’; }
+if (status) { status.style.display = ‘block’; status.style.color = ‘var(--amber)’; status.textContent = ‘⚠ Enter ZIP or City’; }
 return;
 }
 
-if (btn) { btn.disabled = true; btn.textContent = ‘⏳ Searching…’; }
+if (btn) { btn.disabled = true; btn.textContent = ‘⏳ Searching...’; }
 if (loading) loading.style.display = ‘block’;
 
 try {
@@ -220,7 +218,7 @@ body: JSON.stringify({ zip, city, max_price: maxp, max_items: count })
 const data = await res.json();
 if (typeof renderZillowResults === ‘function’) renderZillowResults(data.listings || data);
 } catch (e) {
-if (status) { status.style.display = ‘block’; status.style.color = ‘var(–red)’; status.textContent = ‘❌ Search unavailable — Edge Function not deployed’; }
+if (status) { status.style.display = ‘block’; status.style.color = ‘var(--red)’; status.textContent = ‘❌ Search unavailable — Edge Function not deployed’; }
 console.error(e);
 } finally {
 if (btn) { btn.disabled = false; btn.textContent = ‘🔍 Search’; }
