@@ -615,24 +615,106 @@ Sign Out
   </div>
 </div>
 <div id="page-repairs" class="page">
-  <div style="margin-bottom:20px">
-    <h1 style="font-size:22px;font-weight:800;margin-bottom:6px">Repair Calculator</h1>
-    <p style="color:rgba(255,255,255,0.4);font-size:13px">Room-by-room rehab estimator</p>
-  </div>
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-    <div style="font-size:13px;color:rgba(255,255,255,0.5)">Total Rehab Estimate:</div>
-    <div id="repair-total-hd" style="font-size:22px;font-weight:900;font-family:monospace;color:#f5c842">$0</div>
-  </div>
-  <div id="room-selector"></div>
-  <div id="repair-total-bar">
-    <div id="active-room-title"></div>
-    <div style="display:flex;align-items:center;gap:12px">
-      <span style="font-size:12px;color:rgba(255,255,255,0.5)">Grand Total:</span>
-      <span id="repair-grand-total" style="font-size:18px;font-weight:900;font-family:monospace;color:#f5c842">$0</span>
-      <button onclick="exportRepairs()" class="btn btn-gold" style="padding:7px 14px;font-size:12px">Export</button>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+    <div>
+      <h1 style="font-size:22px;font-weight:800;margin-bottom:4px">Repair Calculator</h1>
+      <p style="color:var(--muted);font-size:13px">Room-by-room rehab estimator</p>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px">
+      <div style="font-size:13px;color:var(--muted)">Total:</div>
+      <div id="repair-total-hd" style="font-size:24px;font-weight:900;font-family:monospace;color:#f5c842">$0</div>
+      <button onclick="exportRepairs()" class="btn btn-gold" style="padding:8px 16px;font-size:12px">📄 Export</button>
     </div>
   </div>
-  <div id="repair-items-list" class="card"></div>
+
+  <!-- Room selector -->
+  <div id="room-selector" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px">
+      <div class="room-card" id="rcard-kitchen" onclick="selectRoom('kitchen')" style="padding:12px 16px;min-width:90px">
+        <div class="room-icon">🍳</div>
+        <div class="room-name">Kitchen</div>
+        <div class="room-cost" id="rcost-kitchen">—</div>
+      </div>
+      <div class="room-card" id="rcard-bathroom1" onclick="selectRoom('bathroom1')" style="padding:12px 16px;min-width:90px">
+        <div class="room-icon">🚿</div>
+        <div class="room-name">Bathroom 1</div>
+        <div class="room-cost" id="rcost-bathroom1">—</div>
+      </div>
+      <div class="room-card" id="rcard-bathroom2" onclick="selectRoom('bathroom2')" style="padding:12px 16px;min-width:90px">
+        <div class="room-icon">🛁</div>
+        <div class="room-name">Bathroom 2</div>
+        <div class="room-cost" id="rcost-bathroom2">—</div>
+      </div>
+      <div class="room-card" id="rcard-halfbath" onclick="selectRoom('halfbath')" style="padding:12px 16px;min-width:90px">
+        <div class="room-icon">🪥</div>
+        <div class="room-name">Half Bath</div>
+        <div class="room-cost" id="rcost-halfbath">—</div>
+      </div>
+      <div class="room-card" id="rcard-master" onclick="selectRoom('master')" style="padding:12px 16px;min-width:90px">
+        <div class="room-icon">🛏</div>
+        <div class="room-name">Master Bed</div>
+        <div class="room-cost" id="rcost-master">—</div>
+      </div>
+      <div class="room-card" id="rcard-bedroom2" onclick="selectRoom('bedroom2')" style="padding:12px 16px;min-width:90px">
+        <div class="room-icon">🛏</div>
+        <div class="room-name">Bedroom 2</div>
+        <div class="room-cost" id="rcost-bedroom2">—</div>
+      </div>
+      <div class="room-card" id="rcard-bedroom3" onclick="selectRoom('bedroom3')" style="padding:12px 16px;min-width:90px">
+        <div class="room-icon">🛏</div>
+        <div class="room-name">Bedroom 3</div>
+        <div class="room-cost" id="rcost-bedroom3">—</div>
+      </div>
+      <div class="room-card" id="rcard-bedroom4" onclick="selectRoom('bedroom4')" style="padding:12px 16px;min-width:90px">
+        <div class="room-icon">🛏</div>
+        <div class="room-name">Bedroom 4</div>
+        <div class="room-cost" id="rcost-bedroom4">—</div>
+      </div>
+      <div class="room-card" id="rcard-living" onclick="selectRoom('living')" style="padding:12px 16px;min-width:90px">
+        <div class="room-icon">🛋</div>
+        <div class="room-name">Living Room</div>
+        <div class="room-cost" id="rcost-living">—</div>
+      </div>
+      <div class="room-card" id="rcard-dining" onclick="selectRoom('dining')" style="padding:12px 16px;min-width:90px">
+        <div class="room-icon">🍽️</div>
+        <div class="room-name">Dining Room</div>
+        <div class="room-cost" id="rcost-dining">—</div>
+      </div>
+      <div class="room-card" id="rcard-laundry" onclick="selectRoom('laundry')" style="padding:12px 16px;min-width:90px">
+        <div class="room-icon">🧺</div>
+        <div class="room-name">Laundry</div>
+        <div class="room-cost" id="rcost-laundry">—</div>
+      </div>
+      <div class="room-card" id="rcard-garage" onclick="selectRoom('garage')" style="padding:12px 16px;min-width:90px">
+        <div class="room-icon">🚗</div>
+        <div class="room-name">Garage</div>
+        <div class="room-cost" id="rcost-garage">—</div>
+      </div>
+      <div class="room-card" id="rcard-exterior" onclick="selectRoom('exterior')" style="padding:12px 16px;min-width:90px">
+        <div class="room-icon">🏠</div>
+        <div class="room-name">Exterior</div>
+        <div class="room-cost" id="rcost-exterior">—</div>
+      </div>
+      <div class="room-card" id="rcard-systems" onclick="selectRoom('systems')" style="padding:12px 16px;min-width:90px">
+        <div class="room-icon">⚙️</div>
+        <div class="room-name">Systems</div>
+        <div class="room-cost" id="rcost-systems">—</div>
+      </div>
+      <div class="room-card" id="rcard-permits" onclick="selectRoom('permits')" style="padding:12px 16px;min-width:90px">
+        <div class="room-icon">📋</div>
+        <div class="room-name">Permits & Misc</div>
+        <div class="room-cost" id="rcost-permits">—</div>
+      </div>
+  </div>
+
+  <!-- Selected room items -->
+  <div id="repair-total-bar" style="display:none;align-items:center;justify-content:space-between;padding:12px 16px;background:rgba(245,200,66,0.08);border:1px solid rgba(245,200,66,0.2);border-radius:10px;margin-bottom:14px">
+    <div id="active-room-title" style="font-size:14px;font-weight:700"></div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:12px;color:var(--muted)">Room subtotal:</span>
+      <span id="repair-grand-total" style="font-size:16px;font-weight:900;font-family:monospace;color:#f5c842">$0</span>
+    </div>
+  </div>
+  <div id="repair-items-list"></div>
 </div>
 <div id="page-properties" class="page">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
