@@ -422,7 +422,59 @@ Sign Out
 
 <main class="main">
 
-<div id="page-dashboard" class="page active"></div>
+<div id="page-dashboard" class="page active">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px">
+    <div>
+      <h1 style="font-size:22px;font-weight:800;margin-bottom:4px">Investment Dashboard</h1>
+      <p style="color:var(--muted);font-size:13px">Properties714 · Real-time overview</p>
+    </div>
+    <button class="btn btn-gold" onclick="nav('analyzer',null)">⚡ Analyze Deal</button>
+  </div>
+
+  <!-- Stats -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px">
+    <div class="card" style="text-align:center">
+      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Properties</div>
+      <div style="font-size:32px;font-weight:900;font-family:'JetBrains Mono',monospace" id="s-props">0</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px">In database</div>
+    </div>
+    <div class="card" style="text-align:center">
+      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Avg Score</div>
+      <div style="font-size:32px;font-weight:900;font-family:'JetBrains Mono',monospace" id="s-score">—</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px">Deal quality</div>
+    </div>
+    <div class="card" style="text-align:center">
+      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Total Profit Est.</div>
+      <div style="font-size:28px;font-weight:900;font-family:'JetBrains Mono',monospace;color:var(--green)" id="s-profit">$0</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px">All deals</div>
+    </div>
+    <div class="card" style="text-align:center">
+      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Good Deals</div>
+      <div style="font-size:32px;font-weight:900;font-family:'JetBrains Mono',monospace;color:var(--gold)" id="s-good">0</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px">Score ≥ 70</div>
+    </div>
+  </div>
+
+  <!-- Recent deals + Strategy mix -->
+  <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px">
+    <div class="card">
+      <div style="font-size:14px;font-weight:700;margin-bottom:16px">📋 Recent Deals</div>
+      <div id="db-recent">
+        <div style="text-align:center;padding:40px;color:var(--muted)">
+          <div style="font-size:36px;margin-bottom:10px">📊</div>
+          <p style="font-size:13px">No deals yet — analyze your first property!</p>
+          <button class="btn btn-gold" onclick="nav('analyzer',null)" style="margin-top:16px">⚡ Analyze Deal</button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div style="font-size:14px;font-weight:700;margin-bottom:16px">📈 Strategy Mix</div>
+      <div id="db-strats">
+        <div style="text-align:center;padding:30px;color:var(--muted);font-size:13px">No data yet</div>
+      </div>
+    </div>
+  </div>
+</div>
 <div id="page-pipeline" class="page"></div>
 <div id="page-analyzer" class="page"></div>
 <div id="page-repairs" class="page">
