@@ -278,7 +278,26 @@ Sign Out
 <div id="page-dashboard" class="page active"></div>
 <div id="page-pipeline" class="page"></div>
 <div id="page-analyzer" class="page"></div>
-<div id="page-repairs" class="page"></div>
+<div id="page-repairs" class="page">
+  <div style="margin-bottom:20px">
+    <h1 style="font-size:22px;font-weight:800;margin-bottom:6px">Repair Calculator</h1>
+    <p style="color:rgba(255,255,255,0.4);font-size:13px">Room-by-room rehab estimator</p>
+  </div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+    <div style="font-size:13px;color:rgba(255,255,255,0.5)">Total Rehab Estimate:</div>
+    <div id="repair-total-hd" style="font-size:22px;font-weight:900;font-family:monospace;color:#f5c842">$0</div>
+  </div>
+  <div id="room-selector"></div>
+  <div id="repair-total-bar">
+    <div id="active-room-title"></div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <span style="font-size:12px;color:rgba(255,255,255,0.5)">Grand Total:</span>
+      <span id="repair-grand-total" style="font-size:18px;font-weight:900;font-family:monospace;color:#f5c842">$0</span>
+      <button onclick="exportRepairs()" class="btn btn-gold" style="padding:7px 14px;font-size:12px">Export</button>
+    </div>
+  </div>
+  <div id="repair-items-list" class="card"></div>
+</div>
 <div id="page-properties" class="page"></div>
 <div id="page-crm" class="page"></div>
 <div id="page-lenders" class="page"></div>
