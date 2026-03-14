@@ -128,8 +128,12 @@ let activeRoom = null;
 
 
 function initRepairs(){
-
   const sel = document.getElementById('room-selector');
+  if (!sel) return;
+
+  // Hide total bar until a room is selected
+  const bar = document.getElementById('repair-total-bar');
+  if (bar && !activeRoom) bar.style.display = 'none';
 
   sel.innerHTML = ROOMS.map(r => {
 
