@@ -390,29 +390,9 @@ async function handleUser(user){
 
   if(profile.approval_status==='approved'){
 
-    // Admin always gets in regardless of subscription
-    if(profile.role==='admin'){
-      enterApp(user,profile);
-      return;
-    }
-
-    const sub=
-      profile.subscription_status||'inactive';
-
-    if(sub==='active'||sub==='trial'){
-      enterApp(user,profile);
-      return;
-    }
-
-    showScreen('auth');
-
-    const err =
-      document.getElementById('login-error');
-
-    if(err){
-      err.textContent='Account approved but subscription inactive.';
-      err.style.display='block';
-    }
+    // Approved — enter app directly
+    enterApp(user, profile);
+    return;
   }
 }
 
