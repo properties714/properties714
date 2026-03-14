@@ -475,8 +475,123 @@ Sign Out
     </div>
   </div>
 </div>
-<div id="page-pipeline" class="page"></div>
-<div id="page-analyzer" class="page"></div>
+<div id="page-pipeline" class="page">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
+    <div><h1 style="font-size:22px;font-weight:800;margin-bottom:4px">Deal Pipeline</h1>
+    <p style="color:var(--muted);font-size:13px">Track every property through your process</p></div>
+    <button class="btn btn-gold" onclick="nav('analyzer',null)">⚡ Analyze Deal</button>
+  </div>
+  <div id="kanban-board" style="display:flex;gap:16px;overflow-x:auto;padding-bottom:16px">
+    <div style="text-align:center;padding:60px;color:var(--muted);width:100%">
+      <div style="font-size:36px;margin-bottom:12px">📋</div>
+      <p>No properties yet. Analyze your first deal!</p>
+    </div>
+  </div>
+</div>
+<div id="page-analyzer" class="page">
+  <div style="display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap">
+    <!-- LEFT: Form -->
+    <div style="flex:1;min-width:320px;max-width:480px">
+      <h1 style="font-size:22px;font-weight:800;margin-bottom:6px">Deal Analyzer</h1>
+      <p style="color:var(--muted);font-size:13px;margin-bottom:20px">GPT-4o powered · Saves to Supabase</p>
+
+      <div class="card" style="margin-bottom:14px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:12px">Property Info</div>
+        <div style="display:grid;gap:10px">
+          <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Address *</label>
+            <input id="f-addr" class="form-input" placeholder="123 Main St, Atlanta"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">City</label>
+              <input id="f-city" class="form-input" placeholder="Atlanta"></div>
+            <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">ZIP</label>
+              <input id="f-zip" class="form-input" placeholder="30309"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:14px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:12px">Zillow Link <span style="font-weight:400;font-size:10px">(optional)</span></div>
+        <div style="display:flex;gap:8px">
+          <input id="f-zillow" class="form-input" placeholder="https://zillow.com/homedetails/...">
+          <button class="btn btn-gold" onclick="parseZillowUrl()" style="white-space:nowrap;padding:10px 14px;font-size:12px">→ Load</button>
+        </div>
+        <div id="zillow-status" style="display:none;font-size:12px;margin-top:8px"></div>
+      </div>
+
+      <div class="card" style="margin-bottom:14px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:12px">Financial Details</div>
+        <div style="display:grid;gap:10px">
+          <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Asking Price ($)</label>
+            <input id="f-ask" class="form-input" type="number" placeholder="150000"></div>
+          <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Rehab Estimate ($)</label>
+            <input id="f-rehab" class="form-input" type="number" placeholder="35000"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Closing Costs ($)</label>
+              <input id="f-close" class="form-input" type="number" value="8000"></div>
+            <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Holding Costs ($)</label>
+              <input id="f-hold" class="form-input" type="number" value="6000"></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Agent Fee (%)</label>
+              <input id="f-agent" class="form-input" type="number" value="3"></div>
+            <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Est. Monthly Rent ($)</label>
+              <input id="f-rent" class="form-input" type="number" placeholder="1400"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted)">Comparables <span style="font-weight:400">(for ARV)</span></div>
+          <button class="btn btn-gold" onclick="addComp()" style="padding:5px 12px;font-size:11px">+ Add Comp</button>
+        </div>
+        <div id="comp-rows"></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px">No comps? ARV estimated at 1.45x purchase price.</div>
+      </div>
+
+      <div class="card" style="margin-bottom:16px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:12px">Exit Strategies</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          ${[{id:'fix_flip',icon:'🔨',label:'Fix & Flip',desc:'Buy, renovate, sell'},
+             {id:'wholesale',icon:'⚡',label:'Wholesale',desc:'Assign the contract'},
+             {id:'rental',icon:'🏘',label:'Rental',desc:'Monthly cashflow'},
+             {id:'brrrr',icon:'🔄',label:'BRRRR',desc:'Refinance & repeat'},
+             {id:'airbnb',icon:'🏖',label:'Airbnb/STR',desc:'Short-term rental'},
+             {id:'subject_to',icon:'📋',label:'Subject-To',desc:'Take over mortgage'},
+             {id:'seller_finance',icon:'🤝',label:'Seller Finance',desc:'Seller finances deal'}
+          ].map(e=>`<div id="exit-${e.id}" class="exit-card${['fix_flip','wholesale','rental'].includes(e.id)?' selected':''}"
+            onclick="toggleExit('${e.id}')"
+            style="padding:10px;border-radius:10px;cursor:pointer;
+              border:1px solid ${['fix_flip','wholesale','rental'].includes(e.id)?'rgba(245,200,66,0.5)':'var(--border)'};
+              background:${['fix_flip','wholesale','rental'].includes(e.id)?'rgba(245,200,66,0.08)':'transparent'}">
+            <div style="font-size:16px">${e.icon}</div>
+            <div style="font-size:12px;font-weight:700;margin-top:4px">${e.label}</div>
+            <div style="font-size:10px;color:var(--muted)">${e.desc}</div>
+          </div>`).join('')}
+        </div>
+        <div id="exit-warning" style="display:none;font-size:12px;color:var(--amber);margin-top:8px">⚠ Select at least one strategy.</div>
+      </div>
+
+      <button class="btn btn-gold" onclick="analyzeDeal()" style="width:100%;justify-content:center;padding:14px;font-size:15px">
+        ⚡ Analyze Deal
+      </button>
+    </div>
+
+    <!-- RIGHT: Results -->
+    <div style="flex:1;min-width:300px;position:sticky;top:80px">
+      <div id="result-placeholder" style="text-align:center;padding:60px 20px;color:var(--muted)">
+        <div style="font-size:48px;margin-bottom:16px">📊</div>
+        <h3 style="font-size:16px;font-weight:700;margin-bottom:8px">Ready to analyze</h3>
+        <p style="font-size:13px">Fill in the form and click Analyze Deal</p>
+      </div>
+      <div id="result-loading" style="display:none;text-align:center;padding:60px 20px;flex-direction:column;align-items:center;gap:12px">
+        <div style="width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin 0.8s linear infinite"></div>
+        <div style="font-size:13px;color:var(--muted)">Analyzing with GPT-4o…</div>
+      </div>
+      <div id="result-output" style="display:none"></div>
+    </div>
+  </div>
+</div>
 <div id="page-repairs" class="page">
   <div style="margin-bottom:20px">
     <h1 style="font-size:22px;font-weight:800;margin-bottom:6px">Repair Calculator</h1>
@@ -497,13 +612,73 @@ Sign Out
   </div>
   <div id="repair-items-list" class="card"></div>
 </div>
-<div id="page-properties" class="page"></div>
-<div id="page-crm" class="page"></div>
+<div id="page-properties" class="page">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
+    <div><h1 style="font-size:22px;font-weight:800;margin-bottom:4px">Properties</h1>
+    <p id="props-sub" style="color:var(--muted);font-size:13px">0 properties</p></div>
+    <button class="btn btn-gold" onclick="nav('analyzer',null)">⚡ Analyze Deal</button>
+  </div>
+  <div class="card" style="overflow-x:auto">
+    <table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead><tr style="border-bottom:1px solid var(--border)">
+        <th style="text-align:left;padding:10px 12px;font-size:11px;color:var(--muted);font-weight:600">ADDRESS</th>
+        <th style="text-align:left;padding:10px 12px;font-size:11px;color:var(--muted);font-weight:600">PRICE</th>
+        <th style="text-align:left;padding:10px 12px;font-size:11px;color:var(--muted);font-weight:600">ARV</th>
+        <th style="text-align:left;padding:10px 12px;font-size:11px;color:var(--muted);font-weight:600">STRATEGY</th>
+        <th style="text-align:left;padding:10px 12px;font-size:11px;color:var(--muted);font-weight:600">SCORE</th>
+        <th style="text-align:left;padding:10px 12px;font-size:11px;color:var(--muted);font-weight:600">REC.</th>
+      </tr></thead>
+      <tbody id="props-table"><tr><td colspan="6" style="padding:40px;text-align:center;color:var(--muted)">No properties yet. Analyze your first deal!</td></tr></tbody>
+    </table>
+  </div>
+</div>
+<div id="page-crm" class="page">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px">
+    <div><h1 style="font-size:22px;font-weight:800;margin-bottom:4px">CRM</h1>
+    <p style="color:var(--muted);font-size:13px">Buyers, sellers, lenders and agents</p></div>
+    <button class="btn btn-gold" onclick="openContactModal()">+ Add Contact</button>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
+    <button class="btn" style="padding:7px 16px;font-size:12px;background:rgba(245,200,66,0.12);border:1px solid rgba(245,200,66,0.4);color:var(--gold)" onclick="filterCRM('all',this)">All</button>
+    <button class="btn" style="padding:7px 16px;font-size:12px;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--muted)" onclick="filterCRM('buyer',this)">Buyers</button>
+    <button class="btn" style="padding:7px 16px;font-size:12px;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--muted)" onclick="filterCRM('seller',this)">Sellers</button>
+    <button class="btn" style="padding:7px 16px;font-size:12px;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--muted)" onclick="filterCRM('lender',this)">Lenders</button>
+    <button class="btn" style="padding:7px 16px;font-size:12px;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--muted)" onclick="filterCRM('agent',this)">Agents</button>
+  </div>
+  <div class="card"><div id="crm-list">
+    <div style="text-align:center;padding:48px;color:var(--muted)">
+      <div style="font-size:36px;margin-bottom:10px">👥</div>
+      <p style="font-size:13px">No contacts yet. Add buyers, sellers and lenders.</p>
+    </div>
+  </div></div>
+</div>
 <div id="page-lenders" class="page"></div>
 <div id="page-listings" class="page"></div>
 <div id="page-scripts" class="page"></div>
 <div id="page-docs" class="page"></div>
-<div id="page-settings" class="page"></div>
+<div id="page-settings" class="page">
+  <div style="max-width:600px">
+    <h1 style="font-size:22px;font-weight:800;margin-bottom:6px">Account Settings</h1>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:28px">Manage your Properties714 account</p>
+    <div class="card" style="margin-bottom:16px">
+      <div style="font-size:13px;font-weight:700;margin-bottom:16px">👤 Profile</div>
+      <div style="display:grid;gap:8px;font-size:13px">
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+          <span style="color:var(--muted)">Email</span><span id="set-email">—</span></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+          <span style="color:var(--muted)">Name</span><span id="set-name-display">—</span></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+          <span style="color:var(--muted)">Role</span><span id="set-role" class="badge badge-gold">investor</span></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0">
+          <span style="color:var(--muted)">Status</span><span id="set-status" class="badge badge-green">active</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div style="font-size:13px;font-weight:700;margin-bottom:16px">🔐 Security</div>
+      <button class="btn btn-gold" onclick="sendPasswordReset()">Send Password Reset Email</button>
+    </div>
+  </div>
+</div>
 <div id="page-admin-dashboard" class="page"></div>
 <div id="page-admin" class="page"></div>
 
