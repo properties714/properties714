@@ -552,22 +552,48 @@ Sign Out
       <div class="card" style="margin-bottom:16px">
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:12px">Exit Strategies</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          ${[{id:'fix_flip',icon:'🔨',label:'Fix & Flip',desc:'Buy, renovate, sell'},
-             {id:'wholesale',icon:'⚡',label:'Wholesale',desc:'Assign the contract'},
-             {id:'rental',icon:'🏘',label:'Rental',desc:'Monthly cashflow'},
-             {id:'brrrr',icon:'🔄',label:'BRRRR',desc:'Refinance & repeat'},
-             {id:'airbnb',icon:'🏖',label:'Airbnb/STR',desc:'Short-term rental'},
-             {id:'subject_to',icon:'📋',label:'Subject-To',desc:'Take over mortgage'},
-             {id:'seller_finance',icon:'🤝',label:'Seller Finance',desc:'Seller finances deal'}
-          ].map(e=>`<div id="exit-${e.id}" class="exit-card${['fix_flip','wholesale','rental'].includes(e.id)?' selected':''}"
-            onclick="toggleExit('${e.id}')"
-            style="padding:10px;border-radius:10px;cursor:pointer;
-              border:1px solid ${['fix_flip','wholesale','rental'].includes(e.id)?'rgba(245,200,66,0.5)':'var(--border)'};
-              background:${['fix_flip','wholesale','rental'].includes(e.id)?'rgba(245,200,66,0.08)':'transparent'}">
-            <div style="font-size:16px">${e.icon}</div>
-            <div style="font-size:12px;font-weight:700;margin-top:4px">${e.label}</div>
-            <div style="font-size:10px;color:var(--muted)">${e.desc}</div>
-          </div>`).join('')}
+          <div id="exit-fix_flip" class="exit-card selected" onclick="toggleExit('fix_flip')"
+            style="padding:10px;border-radius:10px;cursor:pointer;border:1px solid rgba(245,200,66,0.5);background:rgba(245,200,66,0.08)">
+            <div style="font-size:16px">🔨</div>
+            <div style="font-size:12px;font-weight:700;margin-top:4px">Fix & Flip</div>
+            <div style="font-size:10px;color:var(--muted)">Buy, renovate, sell</div>
+          </div>
+          <div id="exit-wholesale" class="exit-card selected" onclick="toggleExit('wholesale')"
+            style="padding:10px;border-radius:10px;cursor:pointer;border:1px solid rgba(245,200,66,0.5);background:rgba(245,200,66,0.08)">
+            <div style="font-size:16px">⚡</div>
+            <div style="font-size:12px;font-weight:700;margin-top:4px">Wholesale</div>
+            <div style="font-size:10px;color:var(--muted)">Assign the contract</div>
+          </div>
+          <div id="exit-rental" class="exit-card selected" onclick="toggleExit('rental')"
+            style="padding:10px;border-radius:10px;cursor:pointer;border:1px solid rgba(245,200,66,0.5);background:rgba(245,200,66,0.08)">
+            <div style="font-size:16px">🏘</div>
+            <div style="font-size:12px;font-weight:700;margin-top:4px">Rental</div>
+            <div style="font-size:10px;color:var(--muted)">Monthly cashflow</div>
+          </div>
+          <div id="exit-brrrr" class="exit-card" onclick="toggleExit('brrrr')"
+            style="padding:10px;border-radius:10px;cursor:pointer;border:1px solid var(--border);background:transparent">
+            <div style="font-size:16px">🔄</div>
+            <div style="font-size:12px;font-weight:700;margin-top:4px">BRRRR</div>
+            <div style="font-size:10px;color:var(--muted)">Refinance & repeat</div>
+          </div>
+          <div id="exit-airbnb" class="exit-card" onclick="toggleExit('airbnb')"
+            style="padding:10px;border-radius:10px;cursor:pointer;border:1px solid var(--border);background:transparent">
+            <div style="font-size:16px">🏖</div>
+            <div style="font-size:12px;font-weight:700;margin-top:4px">Airbnb / STR</div>
+            <div style="font-size:10px;color:var(--muted)">Short-term rental</div>
+          </div>
+          <div id="exit-subject_to" class="exit-card" onclick="toggleExit('subject_to')"
+            style="padding:10px;border-radius:10px;cursor:pointer;border:1px solid var(--border);background:transparent">
+            <div style="font-size:16px">📋</div>
+            <div style="font-size:12px;font-weight:700;margin-top:4px">Subject-To</div>
+            <div style="font-size:10px;color:var(--muted)">Take over mortgage</div>
+          </div>
+          <div id="exit-seller_finance" class="exit-card" onclick="toggleExit('seller_finance')"
+            style="padding:10px;border-radius:10px;cursor:pointer;border:1px solid var(--border);background:transparent">
+            <div style="font-size:16px">🤝</div>
+            <div style="font-size:12px;font-weight:700;margin-top:4px">Seller Finance</div>
+            <div style="font-size:10px;color:var(--muted)">Seller finances deal</div>
+          </div>
         </div>
         <div id="exit-warning" style="display:none;font-size:12px;color:var(--amber);margin-top:8px">⚠ Select at least one strategy.</div>
       </div>
