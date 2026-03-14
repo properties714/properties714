@@ -79,10 +79,109 @@ font-weight:900
 <body>
 
 <!-- AUTH SCREEN -->
-<div id="auth-screen"></div>
+<div id="auth-screen" style="display:flex;min-height:100vh;align-items:center;justify-content:center;background:#090b14;position:relative;z-index:10">
+  <div style="width:100%;max-width:420px;padding:24px">
+
+    <!-- Logo -->
+    <div style="text-align:center;margin-bottom:36px">
+      <div style="font-size:28px;font-weight:900;letter-spacing:-1px;color:#fff">
+        Properties<span style="background:linear-gradient(135deg,#f5c842,#ffd966);-webkit-background-clip:text;-webkit-text-fill-color:transparent">714</span>
+      </div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:6px;letter-spacing:2px;text-transform:uppercase">Investment Platform</div>
+    </div>
+
+    <!-- Tabs -->
+    <div style="display:flex;background:rgba(255,255,255,0.04);border-radius:10px;padding:4px;margin-bottom:24px;border:1px solid rgba(255,255,255,0.08)">
+      <button id="tab-login" class="active" onclick="switchAuthTab('login')"
+        style="flex:1;padding:9px;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;background:linear-gradient(135deg,#f5c842,#ffd966);color:#000">
+        Sign In
+      </button>
+      <button id="tab-register" onclick="switchAuthTab('register')"
+        style="flex:1;padding:9px;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;background:transparent;color:rgba(255,255,255,0.5)">
+        Request Access
+      </button>
+    </div>
+
+    <!-- Login Form -->
+    <div id="form-login" style="display:flex;flex-direction:column;gap:12px">
+      <input id="login-email" type="email" placeholder="Email"
+        style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:13px 16px;font-size:14px;color:#fff;outline:none;font-family:inherit;transition:border-color .15s"
+        onfocus="this.style.borderColor='rgba(245,200,66,0.6)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'"
+        onkeydown="if(event.key==='Enter')doLogin()">
+      <input id="login-pass" type="password" placeholder="Password"
+        style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:13px 16px;font-size:14px;color:#fff;outline:none;font-family:inherit;transition:border-color .15s"
+        onfocus="this.style.borderColor='rgba(245,200,66,0.6)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'"
+        onkeydown="if(event.key==='Enter')doLogin()">
+      <div id="login-error" style="display:none;color:#ff5c5c;font-size:12px;padding:8px 12px;background:rgba(255,92,92,0.1);border-radius:8px;border:1px solid rgba(255,92,92,0.2)"></div>
+      <button id="login-btn" onclick="doLogin()"
+        style="padding:13px;background:linear-gradient(135deg,#f5c842,#ffd966);color:#000;font-weight:800;font-size:14px;border:none;border-radius:10px;cursor:pointer;font-family:inherit;box-shadow:0 0 24px rgba(245,200,66,0.4);transition:all .2s"
+        onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='none'">
+        Sign In →
+      </button>
+      <div style="text-align:center">
+        <button onclick="showForgotPassword()"
+          style="background:none;border:none;color:rgba(255,255,255,0.4);font-size:12px;cursor:pointer;font-family:inherit;text-decoration:underline">
+          Forgot password?
+        </button>
+      </div>
+    </div>
+
+    <!-- Register Form -->
+    <div id="form-register" style="display:none;flex-direction:column;gap:12px">
+      <input id="reg-name" type="text" placeholder="Full Name"
+        style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:13px 16px;font-size:14px;color:#fff;outline:none;font-family:inherit;transition:border-color .15s"
+        onfocus="this.style.borderColor='rgba(245,200,66,0.6)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
+      <input id="reg-email" type="email" placeholder="Email"
+        style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:13px 16px;font-size:14px;color:#fff;outline:none;font-family:inherit;transition:border-color .15s"
+        onfocus="this.style.borderColor='rgba(245,200,66,0.6)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
+      <input id="reg-pass" type="password" placeholder="Password (min 6 chars)"
+        style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:13px 16px;font-size:14px;color:#fff;outline:none;font-family:inherit;transition:border-color .15s"
+        onfocus="this.style.borderColor='rgba(245,200,66,0.6)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
+      <div id="reg-error" style="display:none;color:#ff5c5c;font-size:12px;padding:8px 12px;background:rgba(255,92,92,0.1);border-radius:8px;border:1px solid rgba(255,92,92,0.2)"></div>
+      <div id="reg-success" style="display:none;color:#22e888;font-size:12px;padding:10px 12px;background:rgba(34,232,136,0.1);border-radius:8px;border:1px solid rgba(34,232,136,0.2)">
+        ✅ Request sent! An admin will review your access shortly.
+      </div>
+      <button id="reg-btn" onclick="doRegister()"
+        style="padding:13px;background:linear-gradient(135deg,#f5c842,#ffd966);color:#000;font-weight:800;font-size:14px;border:none;border-radius:10px;cursor:pointer;font-family:inherit;box-shadow:0 0 24px rgba(245,200,66,0.4)">
+        Request Access →
+      </button>
+    </div>
+
+    <!-- Forgot Password Form -->
+    <div id="form-forgot" style="display:none;flex-direction:column;gap:12px">
+      <div style="text-align:center;color:rgba(255,255,255,0.6);font-size:13px;margin-bottom:4px">Enter your email to reset password</div>
+      <input id="forgot-email" type="email" placeholder="Email"
+        style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:13px 16px;font-size:14px;color:#fff;outline:none;font-family:inherit">
+      <div id="forgot-error" style="display:none;color:#ff5c5c;font-size:12px;padding:8px 12px;background:rgba(255,92,92,0.1);border-radius:8px"></div>
+      <div id="forgot-success" style="display:none;color:#22e888;font-size:12px;padding:10px 12px;background:rgba(34,232,136,0.1);border-radius:8px">✅ Reset email sent!</div>
+      <button id="forgot-btn" onclick="doForgotPassword()"
+        style="padding:13px;background:linear-gradient(135deg,#f5c842,#ffd966);color:#000;font-weight:800;font-size:14px;border:none;border-radius:10px;cursor:pointer;font-family:inherit">
+        Send Reset Link →
+      </button>
+      <button onclick="switchAuthTab('login')"
+        style="background:none;border:none;color:rgba(255,255,255,0.4);font-size:12px;cursor:pointer;font-family:inherit">
+        ← Back to login
+      </button>
+    </div>
+
+  </div>
+</div>
 
 <!-- PENDING SCREEN -->
-<div id="pending-screen"></div>
+<div id="pending-screen" style="display:none;min-height:100vh;align-items:center;justify-content:center;background:#090b14;flex-direction:column;gap:24px;text-align:center;padding:40px">
+  <div style="font-size:56px">⏳</div>
+  <div>
+    <div style="font-size:22px;font-weight:800;margin-bottom:8px">Access Pending Review</div>
+    <div style="color:rgba(255,255,255,0.5);font-size:14px;max-width:380px;line-height:1.6">
+      Your request is being reviewed by an admin.<br>You'll get access once approved.
+    </div>
+    <div style="margin-top:16px;font-size:13px;color:rgba(255,255,255,0.3)" id="pending-email-show"></div>
+  </div>
+  <button onclick="doLogout()"
+    style="padding:10px 24px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.6);border-radius:10px;cursor:pointer;font-size:13px;font-family:inherit">
+    Sign Out
+  </button>
+</div>
 
 <!-- MAIN APP -->
 <div id="main-app" style="display:none">
@@ -204,7 +303,23 @@ Sign Out
 
 <!-- PASSWORD RESET -->
 
-<div id="reset-password-overlay"></div>
+<div id="reset-password-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:1000;align-items:center;justify-content:center">
+  <div style="background:#13161e;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:32px;width:90%;max-width:400px">
+    <div style="font-size:18px;font-weight:800;margin-bottom:20px">🔐 Set New Password</div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <input id="reset-pass1" type="password" placeholder="New password"
+        style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px;font-size:14px;color:#fff;outline:none;font-family:inherit">
+      <input id="reset-pass2" type="password" placeholder="Confirm password"
+        style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px;font-size:14px;color:#fff;outline:none;font-family:inherit">
+      <div id="reset-error" style="display:none;color:#ff5c5c;font-size:12px"></div>
+      <div id="reset-success" style="display:none;color:#22e888;font-size:12px">✅ Password updated!</div>
+      <button id="reset-btn" onclick="doResetPassword()"
+        style="padding:12px;background:linear-gradient(135deg,#f5c842,#ffd966);color:#000;font-weight:800;border:none;border-radius:10px;cursor:pointer;font-family:inherit">
+        Update Password →
+      </button>
+    </div>
+  </div>
+</div>
 
 <!-- SCRIPTS (SOLO UNA VEZ Y EN ORDEN) -->
 
