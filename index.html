@@ -17,61 +17,208 @@
 <link rel="stylesheet" href="styles.css">
 
 <style>
-
-header{
-background:#0a0c18;
-border-bottom:2px solid #f5c842
+/* ── CRITICAL CSS — always loaded inline ── */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#090b14;--surface:#0f0f18;--surface2:#161622;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#ece9e2;--muted:rgba(236,233,226,0.55);
+  --gold:#f5c842;--gold-dim:rgba(245,200,66,0.12);
+  --green:#3dba7a;--red:#e05555;--amber:#e08c35;--blue:#5b8dee;
+  --shadow:0 8px 40px rgba(0,0,0,0.5);
 }
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 
-.logo{
-color:#fff;
-font-size:16px
-}
+/* ── LAYOUT ── */
+.app{display:flex;padding-top:62px;min-height:100vh}
+.page{display:none}
+.page.active{display:block}
 
-.logo-badge{
-background:linear-gradient(135deg,#f5c842,#ffd966);
-color:#000;
-font-weight:900;
-padding:4px 10px;
-border-radius:5px;
-box-shadow:0 0 16px rgba(245,200,66,.7);
-font-size:10px;
-letter-spacing:1.5px
-}
+/* ── HEADER ── */
+header{position:fixed;top:0;left:0;right:0;z-index:200;height:62px;
+  background:#0a0c18;backdrop-filter:blur(24px);
+  border-bottom:2px solid #f5c842;
+  display:flex;align-items:center;justify-content:space-between;padding:0 28px;
+  box-shadow:0 4px 24px rgba(0,0,0,0.4)}
 
-.header-status{
-color:#fff;
-font-weight:700;
-font-size:12px
-}
+/* ── SIDEBAR ── */
+.sidebar{width:210px;flex-shrink:0;background:#0c0f1e;
+  border-right:1px solid rgba(245,200,66,0.15);padding:20px 0;
+  position:fixed;top:62px;bottom:0;overflow-y:auto}
 
-.user-email{
-color:#fff;
-font-weight:600
-}
+/* ── MAIN ── */
+.main{flex:1;margin-left:210px;padding:32px;min-height:100vh;background:var(--bg)}
 
-.user-logout{
-color:#ff5c5c;
-border:1px solid rgba(255,92,92,.5);
-background:rgba(255,92,92,.12);
-font-weight:700;
-padding:5px 12px
-}
+/* ── NAV ── */
+.nav-group{margin-bottom:4px}
+.nav-group-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;
+  color:rgba(255,255,255,0.22);padding:12px 20px 4px;font-weight:700}
+.nav-item{padding:9px 20px;font-size:13px;font-weight:500;
+  color:rgba(255,255,255,0.5);cursor:pointer;transition:all .15s;
+  border-left:2px solid transparent}
+.nav-item:hover{color:rgba(255,255,255,0.85);background:rgba(255,255,255,0.04)}
+.nav-item.active{color:#f5c842;background:rgba(245,200,66,0.08);border-left-color:#f5c842}
 
-.btn-gold{
-background:linear-gradient(135deg,#f5c842,#ffd966);
-color:#000;
-font-weight:800;
-box-shadow:0 0 20px rgba(245,200,66,.5);
-border:1px solid #ffd84d
-}
+/* ── LOGO ── */
+.logo{font-size:16px;font-weight:900;color:#fff}
+.logo-714{background:linear-gradient(135deg,#f5c842,#ffd966);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:900}
+.logo-badge{background:linear-gradient(135deg,#f5c842,#ffd966);color:#000;
+  font-weight:900;padding:3px 8px;border-radius:5px;margin-left:6px;
+  font-size:10px;letter-spacing:1px}
 
-.user-avatar{
-background:linear-gradient(135deg,#f5c842,#ffd966);
-color:#000;
-font-weight:900
-}
+/* ── HEADER ELEMENTS ── */
+.header-status{display:flex;align-items:center;gap:6px;font-size:12px;
+  font-weight:600;color:rgba(255,255,255,0.6)}
+.pulse{width:7px;height:7px;border-radius:50%;background:#3dba7a;
+  box-shadow:0 0 8px #3dba7a;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.user-menu{display:flex;align-items:center;gap:10px}
+.user-avatar{width:34px;height:34px;border-radius:50%;
+  background:linear-gradient(135deg,#f5c842,#ffd966);
+  color:#000;font-weight:900;font-size:13px;display:flex;align-items:center;justify-content:center}
+.user-email{font-size:13px;color:rgba(255,255,255,0.7)}
+.user-logout{font-size:12px;font-weight:700;padding:6px 12px;border-radius:8px;
+  cursor:pointer;font-family:inherit;color:#ff5c5c;
+  border:1px solid rgba(255,92,92,.5);background:rgba(255,92,92,.12)}
+.lang-toggle{display:flex;align-items:center;gap:4px;padding:5px 10px;
+  border-radius:8px;border:1px solid rgba(255,255,255,0.12);
+  background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.7);
+  font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
 
+/* ── CARDS ── */
+.card{background:rgba(28,28,42,0.95);border:1px solid rgba(255,255,255,0.1);
+  border-radius:14px;padding:24px;backdrop-filter:blur(8px);transition:all .2s}
+.card:hover{border-color:rgba(245,200,66,0.25)}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:10px 20px;
+  border-radius:9px;font-size:13px;font-weight:700;font-family:'Inter',sans-serif;
+  cursor:pointer;border:none;transition:all .18s}
+.btn-gold{background:linear-gradient(135deg,#f5c842,#ffd966);color:#000;
+  font-weight:800;box-shadow:0 0 20px rgba(245,200,66,0.4);border:1px solid #ffd84d}
+.btn-gold:hover{transform:translateY(-1px);box-shadow:0 0 32px rgba(245,200,66,0.6)}
+.btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6)}
+.btn-sm{padding:6px 12px;font-size:12px}
+
+/* ── FORM INPUTS ── */
+.form-input{background:rgba(28,32,56,0.75);border:1px solid rgba(255,255,255,0.1);
+  border-radius:8px;padding:10px 13px;font-size:13px;font-family:'Inter',sans-serif;
+  color:var(--text);outline:none;transition:border-color .15s;width:100%}
+.form-input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(245,200,66,0.1)}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;
+  font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+  font-family:'JetBrains Mono',monospace}
+.badge-green{background:rgba(34,232,136,0.15);color:#22e888;border:1px solid rgba(34,232,136,0.3)}
+.badge-red{background:rgba(255,92,92,0.15);color:#ff5c5c;border:1px solid rgba(255,92,92,0.3)}
+.badge-amber{background:rgba(255,170,51,0.15);color:#ffaa33;border:1px solid rgba(255,170,51,0.3)}
+.badge-gold{background:rgba(245,200,66,0.15);color:#f5c842;border:1px solid rgba(245,200,66,0.3)}
+.badge-blue{background:rgba(91,159,255,0.15);color:#5b9fff;border:1px solid rgba(91,159,255,0.3)}
+.badge-muted{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.45);border:1px solid rgba(255,255,255,0.1)}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);
+  backdrop-filter:blur(4px);z-index:500;display:none;
+  align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:16px;
+  padding:28px;width:90%;max-width:520px;max-height:80vh;overflow-y:auto;
+  box-shadow:var(--shadow);animation:slideUp .2s ease}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+
+/* ── REPAIR CALC ── */
+#room-selector{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px}
+.room-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);
+  border-radius:10px;padding:12px 16px;cursor:pointer;transition:all .15s;
+  text-align:center;min-width:100px}
+.room-card:hover,.room-card.active{border-color:rgba(245,200,66,0.5);background:rgba(245,200,66,0.08)}
+.room-icon{font-size:22px;margin-bottom:4px}
+.room-name{font-size:11px;font-weight:600}
+.room-cost{font-size:11px;color:#3dba7a;font-family:monospace;margin-top:2px}
+.repair-item{display:flex;align-items:center;gap:10px;padding:8px 0;
+  border-bottom:1px solid rgba(255,255,255,0.05)}
+.repair-check{width:18px;height:18px;border-radius:4px;border:1px solid rgba(255,255,255,0.2);
+  cursor:pointer;flex-shrink:0;transition:all .15s}
+.repair-check.checked{background:#f5c842;border-color:#f5c842}
+.repair-name{flex:1;font-size:13px}
+.repair-cost-input{width:90px !important}
+#repair-total-bar{display:none;align-items:center;justify-content:space-between;
+  padding:12px 16px;background:rgba(245,200,66,0.08);border:1px solid rgba(245,200,66,0.2);
+  border-radius:10px;margin-bottom:16px}
+#active-room-title{font-size:14px;font-weight:700;margin-bottom:12px}
+
+/* ── CRM / CONTACTS ── */
+.contact-card{display:flex;align-items:center;gap:12px;padding:12px 0;
+  border-bottom:1px solid rgba(255,255,255,0.05)}
+.contact-avatar{width:38px;height:38px;border-radius:50%;
+  background:rgba(255,255,255,0.06);display:flex;align-items:center;
+  justify-content:center;font-size:18px;flex-shrink:0}
+.contact-info{flex:1}
+.contact-name{font-size:13px;font-weight:700}
+.contact-detail{font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px}
+
+/* ── LENDER / LISTING ── */
+.lender-card,.listing-card{background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:18px}
+.lender-name{font-size:15px;font-weight:700;margin-bottom:10px}
+.lender-meta{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.lender-tag{background:rgba(255,255,255,0.06);border-radius:20px;padding:3px 10px;
+  font-size:11px;color:rgba(255,255,255,0.6)}
+.listing-card{padding:0;overflow:hidden}
+.listing-img{height:100px;background:rgba(255,255,255,0.04);display:flex;
+  align-items:center;justify-content:center;font-size:40px;position:relative}
+.listing-badge{position:absolute;top:8px;right:8px}
+.listing-body{padding:14px}
+.listing-addr{font-size:13px;font-weight:700;margin-bottom:4px}
+.listing-price{font-size:18px;font-weight:900;color:#f5c842;margin-bottom:6px;font-family:monospace}
+.listing-meta{display:flex;gap:12px;font-size:11px;color:rgba(255,255,255,0.4)}
+
+/* ── SCRIPTS / DOCS ── */
+.script-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);
+  border-radius:12px;padding:18px;margin-bottom:12px}
+.script-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.script-title{font-size:14px;font-weight:700}
+.script-body{font-size:13px;line-height:1.7;color:rgba(255,255,255,0.6)}
+
+/* ── EMPTY STATE ── */
+.empty{text-align:center;padding:48px 20px;color:rgba(255,255,255,0.3)}
+.empty-icon{font-size:40px;margin-bottom:12px}
+
+/* ── DEAL ANALYZER ── */
+.exit-card.selected{border-color:rgba(245,200,66,0.5)!important;background:rgba(245,200,66,0.08)!important}
+.strat-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.strat-tab{padding:7px 14px;border-radius:8px;border:1px solid var(--border);
+  background:transparent;color:var(--muted);font-size:12px;font-weight:600;
+  cursor:pointer;font-family:'Inter',sans-serif}
+.strat-tab.active{background:var(--gold-dim);border-color:var(--gold);color:var(--text)}
+.strat-panel{display:none}
+.strat-panel.active{display:block}
+.exit-result-card{padding:16px;border:1px solid var(--border);border-radius:12px;margin-bottom:12px}
+.exit-result-title{display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:14px;font-size:15px;font-weight:700}
+.verdict-bar{display:inline-flex;align-items:center;border-radius:20px;
+  font-size:11px;font-weight:700;padding:4px 12px}
+.verdict-bar.good{background:rgba(34,232,136,0.15);color:#22e888;border:1px solid rgba(34,232,136,0.3)}
+.verdict-bar.marginal{background:rgba(255,170,51,0.15);color:#ffaa33;border:1px solid rgba(255,170,51,0.3)}
+.verdict-bar.bad{background:rgba(255,92,92,0.15);color:#ff5c5c;border:1px solid rgba(255,92,92,0.3)}
+.deal-result{background:var(--surface);border:1px solid var(--border2);border-radius:14px;padding:20px}
+.deal-rec{font-size:20px;font-weight:800}
+.deal-score-big{font-size:36px;font-weight:900;font-family:'JetBrains Mono',monospace}
+.deal-metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.deal-metric{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px}
+.dm-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.dm-val{font-size:15px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.deal-ai{background:rgba(91,141,238,0.08);border:1px solid rgba(91,141,238,0.2);
+  border-radius:10px;padding:12px;font-size:12px;color:var(--muted);line-height:1.6}
+
+/* ── ANIMATIONS ── */
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){.main{margin-left:0;padding:20px}.sidebar{display:none}}
 </style>
 
 </head>
