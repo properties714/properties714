@@ -130,31 +130,17 @@ let activeRoom = null;
 function initRepairs(){
   const sel = document.getElementById('room-selector');
   if (!sel) return;
-
   // Hide total bar until a room is selected
   const bar = document.getElementById('repair-total-bar');
   if (bar && !activeRoom) bar.style.display = 'none';
-
-  sel.innerHTML = ROOMS.map(r => {
-
-    const total = Object.values(repairState[r.id] || {})
-      .reduce((s,c)=>s+c,0);
-
-    return `
-    <div class="room-card ${activeRoom===r.id?'active':''}"
-    onclick="selectRoom('${r.id}')">
-
-      <div class="room-icon">${r.icon}</div>
-
-      <div class="room-name">${r.name}</div>
-
-      <div class="room-cost">
-        ${total>0 ? '$'+total.toLocaleString() : '—'}
-      </div>
-
-    </div>`;
-  }).join('');
-
+  // Update cost badges on static room cards
+  ROOMS.forEach(r => {
+    const costEl = document.getElementById('rcost-'+r.id);
+    const cardEl = document.getElementById('rcard-'+r.id);
+    const total  = Object.values(repairState[r.id]||{}).reduce((s,c)=>s+c,0);
+    if (costEl) costEl.textContent = total > 0 ? '$'+total.toLocaleString() : '—';
+    if (cardEl) cardEl.classList.toggle('active', activeRoom === r.id);
+  });
   updateRepairTotal();
 }
 
