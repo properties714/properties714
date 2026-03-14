@@ -187,6 +187,9 @@ header{position:fixed;top:0;left:0;right:0;z-index:200;height:62px;
 .empty-icon{font-size:40px;margin-bottom:12px}
 
 /* ── DEAL ANALYZER ── */
+.exit-card{padding:10px;border-radius:10px;cursor:pointer;
+  border:1px solid var(--border);background:transparent;transition:all .15s}
+.exit-card:hover{border-color:rgba(245,200,66,0.3);background:rgba(245,200,66,0.04)}
 .exit-card.selected{border-color:rgba(245,200,66,0.5)!important;background:rgba(245,200,66,0.08)!important}
 .strat-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
 .strat-tab{padding:7px 14px;border-radius:8px;border:1px solid var(--border);
@@ -552,44 +555,37 @@ Sign Out
       <div class="card" style="margin-bottom:16px">
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:12px">Exit Strategies</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <div id="exit-fix_flip" class="exit-card selected" onclick="toggleExit('fix_flip')"
-            style="padding:10px;border-radius:10px;cursor:pointer;border:1px solid rgba(245,200,66,0.5);background:rgba(245,200,66,0.08)">
+          <div id="exit-fix_flip" class="exit-card selected" onclick="toggleExit('fix_flip')">
             <div style="font-size:16px">🔨</div>
             <div style="font-size:12px;font-weight:700;margin-top:4px">Fix & Flip</div>
             <div style="font-size:10px;color:var(--muted)">Buy, renovate, sell</div>
           </div>
-          <div id="exit-wholesale" class="exit-card selected" onclick="toggleExit('wholesale')"
-            style="padding:10px;border-radius:10px;cursor:pointer;border:1px solid rgba(245,200,66,0.5);background:rgba(245,200,66,0.08)">
+          <div id="exit-wholesale" class="exit-card selected" onclick="toggleExit('wholesale')">
             <div style="font-size:16px">⚡</div>
             <div style="font-size:12px;font-weight:700;margin-top:4px">Wholesale</div>
             <div style="font-size:10px;color:var(--muted)">Assign the contract</div>
           </div>
-          <div id="exit-rental" class="exit-card selected" onclick="toggleExit('rental')"
-            style="padding:10px;border-radius:10px;cursor:pointer;border:1px solid rgba(245,200,66,0.5);background:rgba(245,200,66,0.08)">
+          <div id="exit-rental" class="exit-card selected" onclick="toggleExit('rental')">
             <div style="font-size:16px">🏘</div>
             <div style="font-size:12px;font-weight:700;margin-top:4px">Rental</div>
             <div style="font-size:10px;color:var(--muted)">Monthly cashflow</div>
           </div>
-          <div id="exit-brrrr" class="exit-card" onclick="toggleExit('brrrr')"
-            style="padding:10px;border-radius:10px;cursor:pointer;border:1px solid var(--border);background:transparent">
+          <div id="exit-brrrr" class="exit-card" onclick="toggleExit('brrrr')">
             <div style="font-size:16px">🔄</div>
             <div style="font-size:12px;font-weight:700;margin-top:4px">BRRRR</div>
             <div style="font-size:10px;color:var(--muted)">Refinance & repeat</div>
           </div>
-          <div id="exit-airbnb" class="exit-card" onclick="toggleExit('airbnb')"
-            style="padding:10px;border-radius:10px;cursor:pointer;border:1px solid var(--border);background:transparent">
+          <div id="exit-airbnb" class="exit-card" onclick="toggleExit('airbnb')">
             <div style="font-size:16px">🏖</div>
             <div style="font-size:12px;font-weight:700;margin-top:4px">Airbnb / STR</div>
             <div style="font-size:10px;color:var(--muted)">Short-term rental</div>
           </div>
-          <div id="exit-subject_to" class="exit-card" onclick="toggleExit('subject_to')"
-            style="padding:10px;border-radius:10px;cursor:pointer;border:1px solid var(--border);background:transparent">
+          <div id="exit-subject_to" class="exit-card" onclick="toggleExit('subject_to')">
             <div style="font-size:16px">📋</div>
             <div style="font-size:12px;font-weight:700;margin-top:4px">Subject-To</div>
             <div style="font-size:10px;color:var(--muted)">Take over mortgage</div>
           </div>
-          <div id="exit-seller_finance" class="exit-card" onclick="toggleExit('seller_finance')"
-            style="padding:10px;border-radius:10px;cursor:pointer;border:1px solid var(--border);background:transparent">
+          <div id="exit-seller_finance" class="exit-card" onclick="toggleExit('seller_finance')">
             <div style="font-size:16px">🤝</div>
             <div style="font-size:12px;font-weight:700;margin-top:4px">Seller Finance</div>
             <div style="font-size:10px;color:var(--muted)">Seller finances deal</div>
