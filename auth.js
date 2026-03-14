@@ -423,7 +423,9 @@ function enterApp(user,profile){
   if(email) email.textContent=user.email;
 
   loadUserData();
-  renderDashboard();
+  setTimeout(() => {
+    if (typeof renderDashboard === 'function') renderDashboard();
+  }, 100);
 }
 
 
