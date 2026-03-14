@@ -423,6 +423,15 @@ function enterApp(user,profile){
   if(email) email.textContent=user.email;
 
   loadUserData();
+  // Populate settings fields
+  const setEmail = document.getElementById('set-email');
+  const setName  = document.getElementById('set-name-display');
+  const setRole  = document.getElementById('set-role');
+  const setStat  = document.getElementById('set-status');
+  if (setEmail) setEmail.textContent = user.email || '—';
+  if (setName)  setName.textContent  = profile?.full_name || '—';
+  if (setRole)  setRole.textContent  = profile?.role || 'investor';
+  if (setStat)  setStat.textContent  = profile?.approval_status || 'active';
   setTimeout(() => {
     if (typeof renderDashboard === 'function') renderDashboard();
   }, 100);
