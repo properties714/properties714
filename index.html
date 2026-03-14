@@ -1,13 +1,15 @@
 <!DOCTYPE html>
-
 <html lang="es">
+
 <head>
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Properties714 — Investment Platform</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
+
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -15,316 +17,212 @@
 <link rel="stylesheet" href="styles.css">
 
 <style>
-header { background:#0a0c18; border-bottom:2px solid #f5c842 }
-.logo  { color:#fff; font-size:16px }
-.logo-714 { background:linear-gradient(135deg,#f5c842,#ffd966);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:900 }
-.logo-badge { background:linear-gradient(135deg,#f5c842,#ffd966);color:#000;font-weight:900;padding:4px 10px;border-radius:5px;box-shadow:0 0 16px rgba(245,200,66,.7);font-size:10px;letter-spacing:1.5px }
-.header-status { color:#fff;font-weight:700;font-size:12px }
-.user-email { color:#fff;font-weight:600 }
-.user-logout { color:#ff5c5c;border:1px solid rgba(255,92,92,.5);background:rgba(255,92,92,.12);font-weight:700;padding:5px 12px;border-radius:7px;cursor:pointer;font-size:13px }
-.btn-gold { background:linear-gradient(135deg,#f5c842,#ffd966);color:#000;font-weight:800;box-shadow:0 0 20px rgba(245,200,66,.5);border:1px solid #ffd84d }
-.user-avatar { background:linear-gradient(135deg,#f5c842,#ffd966);color:#000;font-weight:900;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px }
-.lang-toggle { background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:7px;padding:5px 10px;cursor:pointer;display:flex;align-items:center;gap:6px;font-size:12px;color:#fff;font-weight:600 }
-.pulse { display:inline-block;width:7px;height:7px;background:#22e888;border-radius:50%;margin-right:6px;animation:pulseDot 2s infinite }
-@keyframes pulseDot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.2)} }
-.user-menu { display:flex;align-items:center;gap:10px }
+
+header{
+background:#0a0c18;
+border-bottom:2px solid #f5c842
+}
+
+.logo{
+color:#fff;
+font-size:16px
+}
+
+.logo-badge{
+background:linear-gradient(135deg,#f5c842,#ffd966);
+color:#000;
+font-weight:900;
+padding:4px 10px;
+border-radius:5px;
+box-shadow:0 0 16px rgba(245,200,66,.7);
+font-size:10px;
+letter-spacing:1.5px
+}
+
+.header-status{
+color:#fff;
+font-weight:700;
+font-size:12px
+}
+
+.user-email{
+color:#fff;
+font-weight:600
+}
+
+.user-logout{
+color:#ff5c5c;
+border:1px solid rgba(255,92,92,.5);
+background:rgba(255,92,92,.12);
+font-weight:700;
+padding:5px 12px
+}
+
+.btn-gold{
+background:linear-gradient(135deg,#f5c842,#ffd966);
+color:#000;
+font-weight:800;
+box-shadow:0 0 20px rgba(245,200,66,.5);
+border:1px solid #ffd84d
+}
+
+.user-avatar{
+background:linear-gradient(135deg,#f5c842,#ffd966);
+color:#000;
+font-weight:900
+}
+
 </style>
 
 </head>
+
 <body>
 
-<!-- ══════════════════════════════════════ -->
+<!-- AUTH SCREEN -->
+<div id="auth-screen"></div>
 
-<!-- AUTH SCREEN                           -->
+<!-- PENDING SCREEN -->
+<div id="pending-screen"></div>
 
-<!-- ══════════════════════════════════════ -->
-
-<div id="auth-screen" style="display:flex;min-height:100vh;align-items:center;justify-content:center;background:#090b14;padding:24px">
-  <div style="width:100%;max-width:420px">
-
-```
-<!-- Logo -->
-<div style="text-align:center;margin-bottom:32px">
-  <div style="font-size:28px;font-weight:900;letter-spacing:-1px;color:#fff;font-family:'Inter',sans-serif">
-    Properties<span style="background:linear-gradient(135deg,#f5c842,#ffd966);-webkit-background-clip:text;-webkit-text-fill-color:transparent">714</span>
-  </div>
-  <div style="font-size:11px;color:rgba(255,255,255,0.35);letter-spacing:2px;margin-top:6px;text-transform:uppercase">Investment Platform</div>
-</div>
-
-<!-- Card -->
-<div style="background:rgba(15,15,24,0.95);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:32px;box-shadow:0 24px 80px rgba(0,0,0,0.6)">
-
-  <!-- Tabs -->
-  <div style="display:flex;border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:28px">
-    <button id="tab-login" onclick="switchAuthTab('login')"
-      style="flex:1;background:none;border:none;border-bottom:2px solid #f5c842;padding:10px;font-size:13px;font-weight:700;cursor:pointer;color:#f5c842;font-family:'Inter',sans-serif">
-      Sign In
-    </button>
-    <button id="tab-register" onclick="switchAuthTab('register')"
-      style="flex:1;background:none;border:none;border-bottom:2px solid transparent;padding:10px;font-size:13px;font-weight:700;cursor:pointer;color:rgba(255,255,255,0.4);font-family:'Inter',sans-serif">
-      Request Access
-    </button>
-  </div>
-
-  <!-- LOGIN FORM -->
-  <div id="form-login" style="display:flex;flex-direction:column;gap:14px">
-    <input id="login-email" class="form-input" type="email" placeholder="Email address" autocomplete="email">
-    <input id="login-pass"  class="form-input" type="password" placeholder="Password" autocomplete="current-password">
-    <div id="login-error" style="display:none;color:#ff5c5c;font-size:12px;padding:8px 12px;background:rgba(255,92,92,0.1);border-radius:7px;border:1px solid rgba(255,92,92,0.25)"></div>
-    <button id="login-btn" class="btn btn-gold" onclick="doLogin()" style="width:100%;justify-content:center;padding:12px">Sign In →</button>
-    <div style="text-align:center">
-      <button onclick="showForgotPassword()" style="background:none;border:none;color:rgba(255,255,255,0.4);font-size:12px;cursor:pointer;font-family:'Inter',sans-serif">Forgot password?</button>
-    </div>
-  </div>
-
-  <!-- REGISTER FORM -->
-  <div id="form-register" style="display:none;flex-direction:column;gap:14px">
-    <input id="reg-name"  class="form-input" type="text" placeholder="Full name" autocomplete="name">
-    <input id="reg-email" class="form-input" type="email" placeholder="Email address" autocomplete="email">
-    <input id="reg-pass"  class="form-input" type="password" placeholder="Password (min. 6 chars)" autocomplete="new-password">
-    <div id="reg-error"   style="display:none;color:#ff5c5c;font-size:12px;padding:8px 12px;background:rgba(255,92,92,0.1);border-radius:7px;border:1px solid rgba(255,92,92,0.25)"></div>
-    <div id="reg-success" style="display:none;color:#22e888;font-size:12px;padding:10px 12px;background:rgba(34,232,136,0.1);border-radius:7px;border:1px solid rgba(34,232,136,0.25)">✓ Request submitted! You'll be notified once approved.</div>
-    <button id="reg-btn" class="btn btn-gold" onclick="doRegister()" style="width:100%;justify-content:center;padding:12px">Request Access →</button>
-  </div>
-
-  <!-- FORGOT PASSWORD FORM -->
-  <div id="form-forgot" style="display:none;flex-direction:column;gap:14px">
-    <p style="font-size:13px;color:rgba(255,255,255,0.5)">Enter your email and we'll send a reset link.</p>
-    <input id="forgot-email" class="form-input" type="email" placeholder="Email address">
-    <div id="forgot-error"   style="display:none;color:#ff5c5c;font-size:12px;padding:8px 12px;background:rgba(255,92,92,0.1);border-radius:7px;border:1px solid rgba(255,92,92,0.25)"></div>
-    <div id="forgot-success" style="display:none;color:#22e888;font-size:12px;padding:10px 12px;background:rgba(34,232,136,0.1);border-radius:7px;border:1px solid rgba(34,232,136,0.25)">✓ Reset link sent! Check your inbox.</div>
-    <button id="forgot-btn" class="btn btn-gold" onclick="doForgotPassword()" style="width:100%;justify-content:center;padding:12px">Send Reset Link →</button>
-    <div style="text-align:center">
-      <button onclick="switchAuthTab('login')" style="background:none;border:none;color:rgba(255,255,255,0.4);font-size:12px;cursor:pointer;font-family:'Inter',sans-serif">← Back to Sign In</button>
-    </div>
-  </div>
-
-</div>
-```
-
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════ -->
-
-<!-- PENDING SCREEN                        -->
-
-<!-- ══════════════════════════════════════ -->
-
-<div id="pending-screen" style="display:none;min-height:100vh;align-items:center;justify-content:center;background:#090b14;padding:24px">
-  <div style="text-align:center;max-width:400px">
-    <div style="font-size:56px;margin-bottom:20px">⏳</div>
-    <h2 style="font-size:22px;font-weight:800;margin-bottom:12px;color:#fff">Access Pending</h2>
-    <p style="color:rgba(255,255,255,0.5);font-size:14px;line-height:1.6;margin-bottom:8px">Your request has been received. You'll get access once an admin approves your account.</p>
-    <p style="color:rgba(255,255,255,0.3);font-size:12px" id="pending-email-show"></p>
-    <div style="margin-top:28px">
-      <button onclick="doLogout()" style="background:rgba(255,92,92,0.12);border:1px solid rgba(255,92,92,0.4);color:#ff5c5c;padding:10px 24px;border-radius:9px;cursor:pointer;font-weight:700;font-size:13px;font-family:'Inter',sans-serif">Sign Out</button>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════ -->
-
-<!-- MAIN APP                              -->
-
-<!-- ══════════════════════════════════════ -->
-
+<!-- MAIN APP -->
 <div id="main-app" style="display:none">
 
-  <header>
-    <div class="logo">
-      Properties<span class="logo-714">714</span>
-      <span class="logo-badge">PRO</span>
-    </div>
-    <div style="display:flex;align-items:center;gap:12px">
-      <div class="header-status">
-        <span class="pulse"></span>
-        <span data-t="system_online">System Online</span>
-      </div>
-      <button class="lang-toggle" onclick="toggleLang()" id="lang-btn">
-        <span id="lang-flag">🇲🇽</span>
-        <span id="lang-label">ES</span>
-      </button>
-      <div class="user-menu">
-        <div class="user-avatar" id="user-avatar-initials">?</div>
-        <div class="user-email" id="user-email-display"></div>
-        <button class="user-logout" onclick="doLogout()">Sign Out</button>
-      </div>
-    </div>
-  </header>
+<header>
 
-  <div class="app">
+<div class="logo">
+Properties<span class="logo-714">714</span>
+<span class="logo-badge">PRO</span>
+</div>
 
-```
+<div style="display:flex;align-items:center;gap:12px">
+
+<div class="header-status">
+<span class="pulse"></span>
+<span data-t="system_online">System Online</span>
+</div>
+
+<button class="lang-toggle" onclick="toggleLang()" id="lang-btn">
+<span id="lang-flag">🇲🇽</span>
+<span id="lang-label">ES</span>
+</button>
+
+<div class="user-menu">
+
+<div class="user-avatar" id="user-avatar-initials">?</div>
+
+<div class="user-email" id="user-email-display"></div>
+
+<button class="user-logout" onclick="doLogout()">
+Sign Out
+</button>
+
+</div>
+
+</div>
+
+</header>
+
+<div class="app">
+
 <nav class="sidebar">
 
-  <div class="nav-group">
-    <div class="nav-group-label" data-t="nav_overview">Overview</div>
-    <div class="nav-item active" onclick="nav('dashboard',this)" data-t="nav_dashboard">Dashboard</div>
-    <div class="nav-item" onclick="nav('pipeline',this)" data-t="nav_pipeline">Pipeline</div>
-  </div>
+<div class="nav-group">
 
-  <div class="nav-group">
-    <div class="nav-group-label" data-t="nav_analysis">Analysis</div>
-    <div class="nav-item" onclick="nav('analyzer',this)" data-t="nav_analyzer">Deal Analyzer</div>
-    <div class="nav-item" onclick="nav('repairs',this)" data-t="nav_repairs">Repair Calc</div>
-    <div class="nav-item" onclick="nav('properties',this)" data-t="nav_properties">Properties</div>
-  </div>
+<div class="nav-group-label">Overview</div>
 
-  <div class="nav-group">
-    <div class="nav-group-label" data-t="nav_network">Network</div>
-    <div class="nav-item" onclick="nav('crm',this)" data-t="nav_crm">CRM</div>
-    <div class="nav-item" onclick="nav('lenders',this)" data-t="nav_lenders">Lenders</div>
-    <div class="nav-item" onclick="nav('listings',this)" data-t="nav_listings">Listings</div>
-  </div>
+<div class="nav-item active" onclick="nav('dashboard',this)">Dashboard</div>
 
-  <div class="nav-group">
-    <div class="nav-group-label" data-t="nav_tools">Tools</div>
-    <div class="nav-item" onclick="nav('scripts',this)" data-t="nav_scripts">Scripts</div>
-    <div class="nav-item" onclick="nav('docs',this)" data-t="nav_docs">Documents</div>
-    <div class="nav-item" onclick="nav('settings',this)" data-t="nav_settings">Settings</div>
-    <div class="nav-item" id="nav-admin" style="display:none" onclick="nav('admin',this)">⚙ Admin</div>
-  </div>
+<div class="nav-item" onclick="nav('pipeline',this)">Pipeline</div>
+
+</div>
+
+<div class="nav-group">
+
+<div class="nav-group-label">Analysis</div>
+
+<div class="nav-item" onclick="nav('analyzer',this)">Deal Analyzer</div>
+
+<div class="nav-item" onclick="nav('repairs',this)">Repair Calc</div>
+
+<div class="nav-item" onclick="nav('properties',this)">Properties</div>
+
+</div>
+
+<div class="nav-group">
+
+<div class="nav-group-label">Network</div>
+
+<div class="nav-item" onclick="nav('crm',this)">CRM</div>
+
+<div class="nav-item" onclick="nav('lenders',this)">Lenders</div>
+
+<div class="nav-item" onclick="nav('listings',this)">Listings</div>
+
+</div>
+
+<div class="nav-group">
+
+<div class="nav-group-label">Tools</div>
+
+<div class="nav-item" onclick="nav('scripts',this)">Scripts</div>
+
+<div class="nav-item" onclick="nav('docs',this)">Documents</div>
+
+<div class="nav-item" onclick="nav('settings',this)">Settings</div>
+
+</div>
 
 </nav>
 
-<main class="main" style="padding-top:88px">
-  <div id="page-dashboard"       class="page active"></div>
-  <div id="page-pipeline"        class="page"></div>
-  <div id="page-analyzer"        class="page"></div>
-  <div id="page-repairs"         class="page"></div>
-  <div id="page-properties"      class="page"></div>
-  <div id="page-crm"             class="page"></div>
-  <div id="page-lenders"         class="page"></div>
-  <div id="page-listings"        class="page"></div>
-  <div id="page-scripts"         class="page"></div>
-  <div id="page-docs"            class="page"></div>
-  <div id="page-settings"        class="page"></div>
-  <div id="page-admin"           class="page"></div>
-  <div id="page-admin-dashboard" class="page"></div>
+<main class="main">
+
+<div id="page-dashboard" class="page active"></div>
+<div id="page-pipeline" class="page"></div>
+<div id="page-analyzer" class="page"></div>
+<div id="page-repairs" class="page"></div>
+<div id="page-properties" class="page"></div>
+<div id="page-crm" class="page"></div>
+<div id="page-lenders" class="page"></div>
+<div id="page-listings" class="page"></div>
+<div id="page-scripts" class="page"></div>
+<div id="page-docs" class="page"></div>
+<div id="page-settings" class="page"></div>
+<div id="page-admin-dashboard" class="page"></div>
+<div id="page-admin" class="page"></div>
+
 </main>
-```
-
-  </div>
 
 </div>
 
-<!-- ══════════════════════════════════════ -->
-
-<!-- MODALS                                -->
-
-<!-- ══════════════════════════════════════ -->
-
-<div class="modal-overlay" id="modal-contact">
-  <div class="modal">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-      <h3 style="font-size:16px;font-weight:700">Add Contact</h3>
-      <button onclick="closeModal('modal-contact')" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:20px">×</button>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:12px">
-      <input id="cm-name"  class="form-input" placeholder="Full name *">
-      <select id="cm-type" class="form-input">
-        <option value="buyer">Buyer</option>
-        <option value="seller">Seller</option>
-        <option value="lender">Lender</option>
-        <option value="agent">Agent</option>
-        <option value="contractor">Contractor</option>
-      </select>
-      <input id="cm-phone" class="form-input" placeholder="Phone">
-      <input id="cm-email" class="form-input" type="email" placeholder="Email">
-      <textarea id="cm-notes" class="form-input" placeholder="Notes" style="height:80px;resize:vertical"></textarea>
-      <button class="btn btn-gold" onclick="saveContact()" style="width:100%;justify-content:center">Save Contact</button>
-    </div>
-  </div>
 </div>
 
-<div class="modal-overlay" id="modal-lender">
-  <div class="modal">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-      <h3 style="font-size:16px;font-weight:700">Add Lender</h3>
-      <button onclick="closeModal('modal-lender')" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:20px">×</button>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:12px">
-      <input id="lm-name"    class="form-input" placeholder="Lender name *">
-      <input id="lm-rate"    class="form-input" type="number" placeholder="Rate % (e.g. 10)">
-      <input id="lm-max"     class="form-input" type="number" placeholder="Max loan amount ($)">
-      <input id="lm-types"   class="form-input" placeholder="Loan types (e.g. fix_flip, rental)">
-      <input id="lm-contact" class="form-input" placeholder="Contact info">
-      <button class="btn btn-gold" onclick="saveLender()" style="width:100%;justify-content:center">Save Lender</button>
-    </div>
-  </div>
-</div>
+<!-- MODALS -->
 
-<div class="modal-overlay" id="modal-listing">
-  <div class="modal">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-      <h3 style="font-size:16px;font-weight:700">Add Listing</h3>
-      <button onclick="closeModal('modal-listing')" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:20px">×</button>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:12px">
-      <input id="lim-addr"  class="form-input" placeholder="Property address *">
-      <input id="lim-price" class="form-input" type="number" placeholder="Asking price ($)">
-      <input id="lim-arv"   class="form-input" type="number" placeholder="ARV ($)">
-      <input id="lim-rehab" class="form-input" type="number" placeholder="Rehab estimate ($)">
-      <select id="lim-strat" class="form-input">
-        <option value="wholesale">Wholesale</option>
-        <option value="fix_flip">Fix & Flip</option>
-        <option value="rental">Rental</option>
-      </select>
-      <textarea id="lim-desc" class="form-input" placeholder="Description" style="height:80px;resize:vertical"></textarea>
-      <button class="btn btn-gold" onclick="saveListing()" style="width:100%;justify-content:center">Publish Listing</button>
-    </div>
-  </div>
-</div>
+<div class="modal-overlay" id="modal-contact"></div>
+<div class="modal-overlay" id="modal-lender"></div>
+<div class="modal-overlay" id="modal-listing"></div>
 
-<!-- ══════════════════════════════════════ -->
+<!-- PASSWORD RESET -->
 
-<!-- PASSWORD RESET OVERLAY                -->
+<div id="reset-password-overlay"></div>
 
-<!-- ══════════════════════════════════════ -->
-
-<div id="reset-password-overlay" style="display:none;position:fixed;inset:0;background:#090b14;z-index:9999;align-items:center;justify-content:center;padding:24px">
-  <div style="width:100%;max-width:400px;background:rgba(15,15,24,0.98);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:36px;box-shadow:0 24px 80px rgba(0,0,0,0.7)">
-    <div style="text-align:center;margin-bottom:28px">
-      <div style="font-size:40px;margin-bottom:12px">🔐</div>
-      <h2 style="font-size:20px;font-weight:800;color:#fff">Set New Password</h2>
-      <p style="color:rgba(255,255,255,0.4);font-size:13px;margin-top:6px">Choose a secure password for your account.</p>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:14px">
-      <input id="reset-pass1" class="form-input" type="password" placeholder="New password">
-      <input id="reset-pass2" class="form-input" type="password" placeholder="Confirm new password">
-      <div id="reset-error"   style="display:none;color:#ff5c5c;font-size:12px;padding:8px 12px;background:rgba(255,92,92,0.1);border-radius:7px;border:1px solid rgba(255,92,92,0.25)"></div>
-      <div id="reset-success" style="display:none;color:#22e888;font-size:12px;padding:10px 12px;background:rgba(34,232,136,0.1);border-radius:7px;border:1px solid rgba(34,232,136,0.25)">✓ Password updated! Redirecting...</div>
-      <button id="reset-btn" class="btn btn-gold" onclick="doResetPassword()" style="width:100%;justify-content:center;padding:12px">Update Password →</button>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════ -->
-
-<!-- SCRIPTS (in order)                    -->
-
-<!-- ══════════════════════════════════════ -->
+<!-- SCRIPTS (SOLO UNA VEZ Y EN ORDEN) -->
 
 <script src="config.js"></script>
-
 <script src="data.js"></script>
-
 <script src="auth.js"></script>
-
 <script src="nav.js"></script>
-
 <script src="dashboard.js"></script>
-
 <script src="analyzer.js"></script>
-
 <script src="repairs.js"></script>
-
 <script src="crm.js"></script>
-
 <script src="admin.js"></script>
-
 <script src="lang.js"></script>
+
+<!-- FUTURE MODULES -->
+
+<!--
+-->
 
 </body>
 </html>
